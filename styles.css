@@ -176,6 +176,10 @@ body {
    FORMULARIO
    ============================================ */
 
+.validation-section {
+    margin-bottom: var(--spacing-3xl);
+}
+
 .form-section {
     margin-bottom: var(--spacing-2xl);
 }
@@ -278,6 +282,27 @@ body {
 
 .btn--primary:focus-visible {
     box-shadow: 0 0 0 3px var(--color-primary-lighter);
+}
+
+.btn--secondary {
+    background-color: var(--color-gray-200);
+    color: var(--color-text-primary);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn--secondary:hover {
+    background-color: var(--color-gray-300);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+}
+
+.btn--secondary:active {
+    transform: translateY(0);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn--secondary:focus-visible {
+    box-shadow: 0 0 0 3px var(--color-gray-100);
 }
 
 .btn__icon {
