@@ -57,9 +57,17 @@ let totalMessages = 0;
  * @returns {boolean} - true si es válido, false si no lo es
  */
 function isValidInput(value) {
-    // TODO: Implementar validación
-    // Pista: usa trim() para eliminar espacios al inicio y final
-    // Retorna true si después de trim() el string tiene longitud > 0
+    return value.trim().length > 0;
+}
+
+/**
+ * Valida que un campo no esté vacío, no contenga espacios en blanco y contenga solo letras y números
+ * @param {string} value - El valor a validar
+ * @returns {boolean} - true si es válido, false si no lo es
+ */
+function isValidAlphanumericInput(value) {
+    const trimmed = value.trim();
+    return trimmed.length > 0 && /^[a-zA-Z0-9]+$/.test(trimmed);
 }
 
 /**
@@ -68,8 +76,7 @@ function isValidInput(value) {
  * @param {string} message - Mensaje de error a mostrar
  */
 function showError(errorElement, message) {
-    // TODO: Implementar función para mostrar error
-    // Pista: asigna el mensaje al textContent del elemento
+    errorElement.textContent = message;
 }
 
 /**
@@ -77,8 +84,7 @@ function showError(errorElement, message) {
  * @param {HTMLElement} errorElement - Elemento del que limpiar el error
  */
 function clearError(errorElement) {
-    // TODO: Implementar función para limpiar error
-    // Pista: asigna un string vacío al textContent
+    errorElement.textContent = '';
 }
 
 /**
@@ -86,37 +92,31 @@ function clearError(errorElement) {
  * @returns {boolean} - true si todos los campos son válidos, false si alguno no lo es
  */
 function validateForm() {
-    // TODO: Implementar validación completa del formulario
-    // 1. Obtener los valores de los inputs usando .value
-    // 2. Crear una variable para saber si el formulario es válido (inicialmente true)
-    // 3. Validar el campo de nombre de usuario
-    //    - Si no es válido, mostrar error y cambiar la variable a false
-    //    - Si es válido, limpiar el error
-    // 4. Validar el campo de mensaje
-    //    - Si no es válido, mostrar error y cambiar la variable a false
-    //    - Si es válido, limpiar el error
-    // 5. Retornar si el formulario es válido o no
-    
-    // Ejemplo de estructura:
-    /*
     const userName = userNameInput.value;
     const userMessage = userMessageInput.value;
     let isValid = true;
-    
-    // Validar nombre
-    if (!isValidInput(userName)) {
-        // Mostrar error
-        // Agregar clase 'error' al input
+
+    // Validar nombre de usuario (solo letras y números, sin espacios)
+    if (!isValidAlphanumericInput(userName)) {
+        showError(userNameError, 'El nombre de usuario debe contener solo letras y números y no estar vacío.');
+        userNameInput.classList.add('error');
         isValid = false;
     } else {
-        // Limpiar error
-        // Remover clase 'error' del input
+        clearError(userNameError);
+        userNameInput.classList.remove('error');
     }
-    
-    // Validar mensaje (estructura similar)
-    
+
+    // Validar mensaje
+    if (!isValidInput(userMessage)) {
+        showError(userMessageError, 'El mensaje no puede estar vacío.');
+        userMessageInput.classList.add('error');
+        isValid = false;
+    } else {
+        clearError(userMessageError);
+        userMessageInput.classList.remove('error');
+    }
+
     return isValid;
-    */
 }
 
 /**
@@ -141,12 +141,17 @@ function getCurrentTimestamp() {
  * @returns {string} - Iniciales en mayúsculas
  */
 function getInitials(name) {
-    // TODO: Implementar función para obtener iniciales
-    // Pista: 
-    // 1. Separar el nombre por espacios usando split(' ')
-    // 2. Tomar la primera letra de cada palabra
-    // 3. Unirlas y convertirlas a mayúsculas
-    // 4. Si solo hay una palabra, retornar las dos primeras letras
+    // Eliminar espacios en blanco al inicio y al final del nombre
+    const trimmedName = name.trim();
+    // Separar el nombre en palabras usando expresiones regulares para manejar múltiples espacios
+    const words = trimmedName.split(/\s+/);
+    // Si hay solo una palabra, retornar las dos primeras letras en mayúsculas
+    if (words.length === 1) {
+        return words[0].substring(0, 2).toUpperCase();
+    } else {
+        // Si hay múltiples palabras, tomar la primera letra de cada una, unirlas y convertir a mayúsculas
+        return words.map(word => word[0]).join('').toUpperCase();
+    }
 }
 
 /**
