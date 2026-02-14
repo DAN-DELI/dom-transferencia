@@ -19,48 +19,64 @@
  * Seleccionamos los elementos del DOM que necesitamos manipular.
  * Usamos getElementById para obtener referencias a los elementos únicos.
  */
+
+// ===============================
+// AREA DE VALIDACION DE USUARIO
+// ===============================
+// Input de la validacion de usuario
 const documentoInput = document.getElementById('documento');
 // Boton de validacion de usuario
 const validateBtn = document.getElementById('validateBtn');
 
-// Formulario principal
-const formulario = document.getElementById('task-section')
-const areaMensajes = document.getElementById('messages-section')
-
+// ===============================
+// AREA DE USUARIO ENCONTRADO
+// ===============================
+// Tabla "div" que almacena las etiquetas
 const userInfoSection = document.getElementById('userInfo');
+// Sitio para el del usuario
 const userNameDisplay = document.getElementById('userNameDisplay');
+// Sitio para el correo del usuario
 const userEmailDisplay = document.getElementById('userEmailDisplay');
 
+// ===============================
+// AREA DE MENSAJES PUBLICADOS
+// ===============================
+// Seccion de mensajes publicados
+const areaMensajes = document.getElementById('messages-section')
+// Area de mensajes publicados
 const messagesContainer = document.getElementById('messagesContainer');
 // Sitio de las publicaciones
 const emptyState = document.getElementById('emptyState');
+// Contador de mensajes publicados
 const messageCount = document.getElementById('messageCount');
 
-// ===============
+// ===============================
 // FORM PRINCIPAL
-// ===============
-// form total
+// ===============================
+// Seccion del formulario principal
+const formulario = document.getElementById('task-section')
+// Form total
 const taskForm = document.getElementById('taskForm');
-// input del titulo
+// Input del titulo
 const taskTitleInput = document.getElementById('taskTitle');
-// input de la descripcion
+// Input de la descripcion
 const taskDescriptionInput = document.getElementById('taskDescription');
-// input del statud
+// Input del statud
 const taskStatusInput = document.getElementById('taskStatus');
-
-// sitio si hay un error en el titulo
+// Sitio si hay un error en el titulo
 const taskTitleError = document.getElementById('taskTitleError');
-// sitio si hay un error en la descripcion
+// Sitio si hay un error en la descripcion
 const taskDescriptionError = document.getElementById('taskDescriptionError');
-// sitio si hay un error en el status
+// Sitio si hay un error en el status
 const taskStatusError = document.getElementById('taskStatusError');
 
 
-// =============================
+// ===============================
 // ESTADO GLOBAL
-// =============================
-
+// ===============================
+// Usuario actual
 let currentUser = null;
+// Contador de mensajes
 let totalMessages = 0;
 
 
@@ -178,7 +194,6 @@ function updateMessageCount() {
     messageCount.textContent = `${totalMessages} mensaje${totalMessages !== 1 ? 's' : ''}`;
 }
 
-
 /**
  * Oculta el estado vacío (mensaje cuando no hay mensajes)
  */
@@ -195,8 +210,8 @@ function showEmptyState() {
 
 /**
  * Valida un usuario consultando la API mediante el ID ingresado.
- * Si el usuario existe, muestra su información y habilita el formulario junto con sus respectiva informacion.
- * Si no existe, muestra un mensaje de error y deshabilita el formulario.
+ * Si el usuario existe, muestra su información y habilita el formulario junto con la zona de mensajes posteados.
+ * Si no existe, muestra un mensaje de error.
  */
 async function validateUser() {
     const id = documentoInput.value.trim();
@@ -206,35 +221,41 @@ async function validateUser() {
         alert("Debe ingresar un ID válido (solo números).");
         documentoInput.value = "";
         documentoInput.focus();
-
         return;
     }
 
     try {
+        // Busca al usuario por el id
         const response = await fetch(`http://localhost:3000/users/${id}`);
 
+        // Mensaje en caso de que no se encuentre al usuario
         if (!response.ok) {
             throw new Error("Usuario no encontrado");
         }
 
+        // Guardamos los datos del usuario anteriormente consultado en "user" => "currentUser"
         const user = await response.json();
         currentUser = user;
 
-        // Mostrar info
+        // Accedemos al nombre y email del usuario
         userNameDisplay.textContent = user.name;
         userEmailDisplay.textContent = user.email;
 
+        // Removemos la clase "hidden" para permitir el acceso completo al usuario
         userInfoSection.classList.remove('hidden');
         formulario.classList.remove('hidden');
         areaMensajes.classList.remove('hidden');
 
+        // Si el usuario tiene tareas anteriormente registradas, se muestran en la tabla de tareas
         await loadUserTasks(user.id);
 
         // Confirmacion y saludo para el usuario
         alert(`Hola ${user.name}.`);
 
+        // Mostrar en consola la informacion del usuario
         console.log(currentUser)
-        // Limpiar input después de enviar la info
+
+        // Limpiamos el input 
         documentoInput.value = "";
 
     } catch (error) {
@@ -254,29 +275,28 @@ async function validateUser() {
 }
 
 
-
-
 // ============================================
 // 3. CREACIÓN DE ELEMENTOS
 // ============================================
 
 /**
  * Crea un nuevo elemento de mensaje en el DOM
- * @param {string} userName - Nombre del usuario
- * @param {string} message - Contenido del mensaje
+ * @param {string} tituloForm - Titulo de la tarea
+ * @param {string} descripcionForm - Descripcion de la tarea
+ * @param {string} estadoForm - Estado de la tarea
  */
 function createMessageElement(tituloForm, descripcionForm, estadoForm) {
-    // PASO 1: Crear el contenedor principal del mensaje
+    // Crea el contenedor principal del mensaje
     const messageCard = document.createElement('div');
     messageCard.classList.add('message-card');
 
-    // PASO 2: Crear la estructura interna del mensaje
+    // Crea la estructura interna del mensaje
     const timestamp = getCurrentTimestamp();
 
     messageCard.innerHTML = `
         <div class="message-card__header">
             <div class="message-card__user">
-                <div class="message-card__avatar">${getInitials(tituloForm)}</div>
+                <div class="message-card__avatar">${getInitials(currentUser.name)}</div>
                 <span class="message-card__username">${tituloForm}</span>
             </div>
             <span class="message-card__timestamp">${timestamp}</span>
@@ -287,16 +307,16 @@ function createMessageElement(tituloForm, descripcionForm, estadoForm) {
         </div>
     `;
 
-    // PASO 3: Insertar el nuevo elemento en el contenedor de mensajes
+    // Inserta el nuevo elemento en el contenedor de mensajes
     messagesContainer.insertBefore(messageCard, messagesContainer.firstChild);
 
-    // PASO 4: Incrementar el contador de mensajes
+    // Incrementar el contador de mensajes
     totalMessages++;
 
-    // PASO 5: Actualizar el contador visual
+    // Actualiza el contador visual
     updateMessageCount();
 
-    // PASO 6: Ocultar el estado vacío si está visible
+    // Oculta el estado vacío si está visible
     hideEmptyState();
 }
 
@@ -307,21 +327,24 @@ function createMessageElement(tituloForm, descripcionForm, estadoForm) {
 
 /**
  * Maneja el evento de envío del formulario
- * @param {Event} event - Evento del formulario
+ * @param {Event} event - Detiene la marcha del submit
 */
 async function handleTaskSubmit(event) {
+    // Detiene el submit
     event.preventDefault();
 
-
+    // Valida que haya un usuario registrado
     if (!currentUser) {
         alert("Primero debes validar un usuario.");
         return;
     }
 
+    // Valida que el form no se encuentre vacio
     if (!validateForm()) {
         return;
     }
 
+    // Crea el body del POST
     const newTask = {
         userId: currentUser.id,
         title: taskTitleInput.value.trim(),
@@ -336,29 +359,23 @@ async function handleTaskSubmit(event) {
             body: JSON.stringify(newTask)
         });
 
+        // Verifica que se registre correctamente
         if (!response.ok) throw new Error("Error al registrar la tarea");
 
-        // console.log("STATUS:", response.status);
-        // const text = await response.text();
-        // console.log("RAW RESPONSE:", text);
-        // return;
-
-
+        // Se guarda la informacion de la tarea
         const savedTask = await response.json();
-        console.log("✅ Tarea registrada:", savedTask);
+        console.log("Tarea registrada:", savedTask);
 
-        // Aquí puedes crear un elemento en el DOM para mostrar la tarea
+        // Crea el elemento para guardar la tarea
         createMessageElement(
             savedTask.title,
             savedTask.description,
             savedTask.status
         );
 
-
         // Resetea el formulario y focaliza en el input del titulo
         taskForm.reset();
         taskTitleInput.focus();
-
 
     } catch (error) {
         alert("No se pudo registrar la tarea.");
@@ -380,7 +397,6 @@ async function loadUserTasks(userId) {
         const existingCards = messagesContainer.querySelectorAll('.message-card');
         existingCards.forEach(card => card.remove());
         totalMessages = 0;
-
 
         if (tasks.length === 0) {
             showEmptyState();
@@ -415,13 +431,13 @@ function handleInputChange(input, errorElement) {
 // 5. REGISTRO DE EVENTOS
 // ============================================
 
-// Evento para confirmar si se encuentra al usuario
+// Evento para validar al usuario con id
 validateBtn.addEventListener("click", validateUser);
 
 // Evento para enviar el formulario de tareas
 taskForm.addEventListener("submit", handleTaskSubmit);
 
-// Eventos para limpiar errores al escribir (OPCIÓN A - más limpia)
+// Eventos para limpiar errores al escribir
 taskTitleInput.addEventListener('input', () => clearError(taskTitleError));
 taskDescriptionInput.addEventListener('input', () => clearError(taskDescriptionError));
 taskStatusInput.addEventListener('change', () => clearError(taskStatusError));
