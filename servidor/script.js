@@ -446,8 +446,6 @@ taskForm.addEventListener("submit", handleTaskSubmit);
 taskTitleInput.addEventListener('input', () => clearError(taskTitleError));
 taskDescriptionInput.addEventListener('input', () => clearError(taskDescriptionError));
 taskStatusInput.addEventListener('change', () => clearError(taskStatusError));
-<<<<<<< HEAD:servidor/script.js
-=======
 
 
 // ============================================
@@ -472,7 +470,6 @@ taskStatusInput.addEventListener('change', () => clearError(taskStatusError));
  * 5. ¿Qué ocurre en la página cada vez que repites la acción?
  *    R: 
  */
->>>>>>> main:script.js
 
 
 // ============================================
