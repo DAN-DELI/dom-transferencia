@@ -1,3 +1,4 @@
+import {listarTareas} from './services/tarea.servicio.js';
 /**
  * ============================================
  * EJERCICIO DE MANIPULACIÓN DEL DOM
@@ -397,6 +398,9 @@ async function loadUserTasks(userId) {
         if (!response.ok) throw new Error("Error cargando tareas");
 
         const tasks = await response.json();
+
+        
+        listarTareas()
 
         // Limpiar contenedor antes de pintar
         const existingCards = messagesContainer.querySelectorAll('.message-card');

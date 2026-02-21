@@ -22,10 +22,12 @@
  */
 
 
+** Se han creado 4 carpetas
 
+- api
 
+- services
 
+- ui
 
- Anotaciones para continuar: 
- agg: Al momento de crear las tareas agregar el boton delete and upload
-
+- utils
