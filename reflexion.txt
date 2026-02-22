@@ -24,10 +24,36 @@
 
 ** Se han creado 4 carpetas
 
-- api
+- api: Se usa unicamente para peticiones y retorno de estas mismas
 
-- services
+--- Se compone por: 
+-----delete:
+-----get:
+-----patch: 
+-----post
+-----put
 
-- ui
+/////////////////////////////////////////////////////////////////////////////
 
-- utils
+- services: Se usa unicamente para funciones las cuales realizan tareas en concreto
+
+
+
+- ui: Se usa para cuando se va a mostrar algo en la interfas del usuario
+
+
+
+- utils: Para funciones reutilizables
+
+
+
+
+
+
+
+
+
+
+LLAMADOS DE ATENCION: 
+La funcion isValidAlphanumericInput nunca se llama para ser usada
+al igual que handleInputChange
