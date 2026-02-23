@@ -1,4 +1,3 @@
-import {listarTareas} from './services/tarea.servicio.js';
 /**
  * ============================================
  * EJERCICIO DE MANIPULACIÓN DEL DOM
@@ -236,7 +235,8 @@ async function validateUser() {
 
         // Guardamos los datos del usuario anteriormente consultado en "user" => "currentUser"
         const user = await response.json();
-        currentUser = user;
+        // Asegurar que el id sea string para coincidir con db.json
+        currentUser = { ...user, id: String(user.id) };
 
         // Accedemos al nombre y email del usuario
         userNameDisplay.textContent = user.name;
@@ -248,7 +248,7 @@ async function validateUser() {
         areaMensajes.classList.remove('hidden');
 
         // Si el usuario tiene tareas anteriormente registradas, se muestran en la tabla de tareas
-        await loadUserTasks(user.id);
+        await loadUserTasks(currentUser.id);
 
         // Confirmacion y saludo para el usuario
         alert(`Hola ${user.name}.`);
@@ -279,6 +279,37 @@ async function validateUser() {
 // ============================================
 // 3. CREACIÓN DE ELEMENTOS
 // ============================================
+
+
+/**
+ * Ordena y renderiza las tareas del usuario en el DOM.
+ * Las tareas más recientes (según createdAt) se muestran primero.
+ * Si una tarea no tiene fecha, se considera más antigua.
+ * 
+ * @param {Array} tasks - Lista de tareas obtenidas desde la API
+ */
+function listarTareas(tasks) {
+    // Limpiar tarjetas existentes del contenedor
+    const existingCards = messagesContainer.querySelectorAll('.message-card');
+    existingCards.forEach(card => card.remove());
+    totalMessages = 0;
+
+    // Si no hay tareas, mostrar mensaje vacío
+    if (tasks.length === 0) {
+        showEmptyState();
+        updateMessageCount();
+        return;
+    }
+
+    // Renderizar cada tarea en el DOM
+    tasks.forEach(task => {
+        createMessageElement(
+            task.title,
+            task.description,
+            task.status
+        );
+    });
+}
 
 /**
  * Crea un nuevo elemento de mensaje en el DOM
@@ -355,7 +386,8 @@ async function handleTaskSubmit(event) {
         userId: currentUser.id,
         title: taskTitleInput.value.trim(),
         description: taskDescriptionInput.value.trim(),
-        status: taskStatusInput.value
+        status: taskStatusInput.value,
+        createdAt: new Date().toISOString()
     };
 
     try {
@@ -394,32 +426,19 @@ async function handleTaskSubmit(event) {
  */
 async function loadUserTasks(userId) {
     try {
-        const response = await fetch(`http://localhost:3000/tasks?userId=${userId}`);
+        const response = await fetch(`http://localhost:3000/tasks`);
         if (!response.ok) throw new Error("Error cargando tareas");
 
         const tasks = await response.json();
 
-        
-        listarTareas()
+        // FILTRO REAL AQUÍ
+        const userTasks = tasks.filter(
+            t => String(t.userId) === String(userId)
+        );
 
-        // Limpiar contenedor antes de pintar
-        const existingCards = messagesContainer.querySelectorAll('.message-card');
-        existingCards.forEach(card => card.remove());
-        totalMessages = 0;
+        console.log("Tareas filtradas:", userTasks);
 
-        if (tasks.length === 0) {
-            showEmptyState();
-            updateMessageCount();
-            return;
-        }
-
-        tasks.forEach(task => {
-            createMessageElement(
-                task.title,
-                task.description,
-                task.status
-            );
-        });
+        listarTareas(userTasks);
 
     } catch (error) {
         console.error("Error cargando tareas:", error);
