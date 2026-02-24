@@ -105,6 +105,77 @@
                 <span class="messages-header__count" id="messageCount">0 mensajes</span>
             </div>
 
+            <div class="messages-controls">
+
+
+                <!-- Filtro de tareas -->
+                <div class="filter-tasks" >
+                    <h3>Filtrar tareas</h3>
+                    <p>Selecciona uno o varios estados:</p>
+
+                    <!-- Filtro de tareas -->
+                    <label>
+                        <input type="checkbox" id="filterPendiente" value="pendiente">
+                        Pendientes
+                    </label>
+
+                    <label>
+                        <input type="checkbox" id="filterEnProgreso" value="en-progreso">
+                        En progreso
+                    </label>
+
+                    <label>
+                        <input type="checkbox" id="filterCompletada" value="completada">
+                        Completadas
+                    </label>
+                </div>
+
+                <!-- Ordenamiento de tareas -->
+                <div class="sort-tasks">
+                    <h3>Ordenar tareas</h3>
+                    <p>Selecciona el criterio y dirección:</p>
+
+                    <!-- Ordenar por fecha -->
+                    <label>
+                        <input type="radio" name="sortOption" value="fecha-asc">
+                        Fecha de creación (más antiguas primero)
+                    </label>
+                    <label>
+                        <input type="radio" name="sortOption" value="fecha-desc">
+                        Fecha de creación (más recientes primero)
+                    </label>
+
+                    <!-- Ordenar por nombre -->
+                    <label>
+                        <input type="radio" name="sortOption" value="nombre-asc">
+                        Nombre (A → Z)
+                    </label>
+                    <label>
+                        <input type="radio" name="sortOption" value="nombre-desc">
+                        Nombre (Z → A)
+                    </label>
+
+                    <!-- Ordenar por estado -->
+                    <label>
+                        <input type="radio" name="sortOption" value="estado-asc">
+                        Estado (pendiente → completada)
+                    </label>
+                    <label>
+                        <input type="radio" name="sortOption" value="estado-desc">
+                        Estado (completada → pendiente)
+                    </label>
+
+                    <!-- boton para comfirmar cambios -->
+                    <div class="apply-controls">
+                        <button id="sortBtn" class="btn btn--apply">
+                            <span class="btn__text">Aplicar filtros y ordenamiento</span>
+                            <span class="btn__icon">✔</span>
+                        </button>
+                    </div>
+
+            </div>
+
+
             <!-- zona de mensajes publicados -->
             <div id="messagesContainer" class="messages-container">
                 <!-- Los mensajes se agregarán aquí dinámicamente -->
