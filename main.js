@@ -3,10 +3,11 @@
 // ---------------------------------------------------------------
 
 import { validateUserService } from "./services/userService.js";
-import { getTasksByUser, saveTask } from "./services/tasksService.js";
-import { renderTasks } from "./ui/tasksUI.js";
+import { filterTasks, getTasksByUser, saveTask, sortTasks } from "./services/tasksService.js";
+import { renderTasks, resetFiltersUI, tasksNull } from "./ui/tasksUI.js";
 import { showUserSections, hideUserSections } from "./ui/layoutUI.js";
-import { hideUserUI } from "./ui/uiState.js";
+import { hideEmpty, hideUserUI } from "./ui/uiState.js";
+
 
 const validateBtn = document.getElementById("validateBtn");
 const documentoInput = document.getElementById("documento");
@@ -19,7 +20,18 @@ const container = document.getElementById("messagesContainer");
 const nameDisplay = document.getElementById("userNameDisplay");
 const emailDisplay = document.getElementById("userEmailDisplay");
 
-const emptyState = document.getElementById("emptyState")
+const emptyState = document.getElementById("emptyState");
+
+const taskTitle = document.getElementById("taskTitle");
+const taskDescription = document.getElementById("taskDescription")
+const taskStatus = document.getElementById("taskStatus")
+
+const messagesFilters = document.getElementById("messagesFilters")
+
+// Area de filtro y orden
+const sortTasksArea = document.getElementById('sortTasks')
+const applyFiltersBtn = document.getElementById('applyFiltersBtn')
+const filterStatus = document.querySelectorAll(".filterStatus")
 
 let currentUser = null;
 let tasksUser = []
@@ -53,14 +65,20 @@ validateBtn.addEventListener("click", async () => {
 
         showUserSections(userInfo, form, messages);
 
+        tasksUser = await getTasksByUser(currentUser.id, container, messagesFilters);
 
+        if (tasksUser.length == 0) {
+            hideEmpty(messagesFilters)
+            tasksNull(container)
+        } else {
+            renderTasks(container, tasksUser, currentUser);
+        }
 
-        tasksUser = await getTasksByUser(currentUser.id, emptyState);
-        renderTasks(container, tasksUser, currentUser, emptyState);
+        resetFiltersUI(filterStatus, sortTasksArea)
 
     } catch (error) {
         alert("Usuario no encontrado");
-        console.log(error)
+        console.log("Se ha presentado un error: " + error)
     }
 });
 
@@ -80,8 +98,30 @@ document.getElementById("taskForm").addEventListener("submit", async e => {
 
     await saveTask(task);
 
-    tasksUser = await getTasksByUser(currentUser.id);
-    renderTasks(container, tasksUser, currentUser);
+    tasksUser = await getTasksByUser(currentUser.id, emptyState);
+    renderTasks(container, tasksUser, currentUser, emptyState, messagesFilters);
 
+    taskTitle.value = ''
+    taskDescription.value = ''
+    taskStatus.value = ''
+});
 
+// ================= FILTRAR Y ORDENAR =================
+applyFiltersBtn.addEventListener("click", () => {
+
+    // estados seleccionados
+    const estados = [...filterStatus]
+        .filter(cb => cb.checked)
+        .map(cb => cb.value);
+
+    // criterio orden
+    const sort = sortTasksArea.value;
+
+    // aplicar filtros y orden
+    let result = sortTasks(filterTasks(tasksUser, estados), sort);
+
+    // renderiza
+    result.length === 0
+        ? tasksNull(container)
+        : renderTasks(container, result, currentUser);
 });
