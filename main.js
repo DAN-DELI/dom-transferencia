@@ -7,7 +7,7 @@ import { filterTasks, getTasksByUser, saveTask, sortTasks } from "./services/tas
 import { renderTasks, resetFiltersUI, tasksNull } from "./ui/tasksUI.js";
 import { showUserSections, hideUserSections } from "./ui/layoutUI.js";
 import { hideEmpty, hideUserUI } from "./ui/uiState.js";
-
+import { getSelectedValues, processTasks } from "./utils/helpers.js";
 
 const validateBtn = document.getElementById("validateBtn");
 const documentoInput = document.getElementById("documento");
@@ -108,19 +108,11 @@ document.getElementById("taskForm").addEventListener("submit", async e => {
 
 // ================= FILTRAR Y ORDENAR =================
 applyFiltersBtn.addEventListener("click", () => {
-
-    // estados seleccionados
-    const estados = [...filterStatus]
-        .filter(cb => cb.checked)
-        .map(cb => cb.value);
-
-    // criterio orden
+    const estados = getSelectedValues(filterStatus);
     const sort = sortTasksArea.value;
 
-    // aplicar filtros y orden
-    let result = sortTasks(filterTasks(tasksUser, estados), sort);
+    const result = processTasks(tasksUser, estados, sort, filterTasks, sortTasks);
 
-    // renderiza
     result.length === 0
         ? tasksNull(container)
         : renderTasks(container, result, currentUser);
