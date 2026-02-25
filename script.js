@@ -7,6 +7,8 @@
  * responder a eventos y crear nuevos elementos dinámicamente.
  * 
  * Autor: Jhon Bueno & Dario Herrera
+ * Contribuidores: Manuel Enrique Serrano Barajas
+ *                 Wilmer Ferney Ardila Ordoñez
  * Fecha: 11/02/26
  * ============================================
  */
