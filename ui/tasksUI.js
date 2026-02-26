@@ -4,10 +4,7 @@
 
 import { getInitials, getCurrentTimestamp } from "../utils/helpers.js";
 import { showEmpty } from "./uiState.js";
-<<<<<<< HEAD
 import { updateTaskApi, deleteTaskApi } from "../api/tasksApi.js";
-=======
->>>>>>> upstream/develop
 
 export function renderTasks(container, tasks, currentUser) {
     showEmpty(messagesFilters)
@@ -31,13 +28,10 @@ export function renderTasks(container, tasks, currentUser) {
                 <span class="message-card__username">${task.title}</span>
             </div>
             <span class="message-card__timestamp">${getCurrentTimestamp()}</span>
-<<<<<<< HEAD
             <div class="task-btns">
                 <button class="btn-edit">Editar</button>
                 <button class="btn-delete">Eliminar</button>
             </div>
-=======
->>>>>>> upstream/develop
         </div>
         <div class="message-card__content">
             <p><strong>Descripción:</strong> ${task.description}</p>
@@ -45,7 +39,6 @@ export function renderTasks(container, tasks, currentUser) {
         </div>
         `;
 
-<<<<<<< HEAD
         card.querySelector('.btn-delete').onclick = async () => {
             if (confirm("¿Eliminar esta tarea?")) {
                 await deleteTaskApi(task.id);
@@ -56,13 +49,10 @@ export function renderTasks(container, tasks, currentUser) {
 
         card.querySelector('.btn-edit').onclick = () => makeEditable(card, task);
 
-=======
->>>>>>> upstream/develop
         container.appendChild(card);
     });
 }
 
-<<<<<<< HEAD
 // Función para transformar la card en formulario de edición
 function makeEditable(card, task) {
     const content = card.querySelector('.message-card__content');
@@ -104,8 +94,6 @@ function makeEditable(card, task) {
     };
 }
 
-=======
->>>>>>> upstream/develop
 export function tasksNull(container) {
     container.innerHTML = `
     <div class="messages-empty" id="emptyState">

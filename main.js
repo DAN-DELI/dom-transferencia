@@ -9,12 +9,9 @@ import { showUserSections, hideUserSections } from "./ui/layoutUI.js";
 import { hideEmpty, hideUserUI } from "./ui/uiState.js";
 import { getSelectedValues, processTasks } from "./utils/helpers.js";
 
-<<<<<<< HEAD
 import { generateTasksJSON } from "./services/exportService.js";
 import { downloadJSONFile } from "./ui/exportUI.js";
 
-=======
->>>>>>> upstream/develop
 const validateBtn = document.getElementById("validateBtn");
 const documentoInput = document.getElementById("documento");
 
@@ -39,17 +36,12 @@ const sortTasksArea = document.getElementById('sortTasks')
 const applyFiltersBtn = document.getElementById('applyFiltersBtn')
 const filterStatus = document.querySelectorAll(".filterStatus")
 
-<<<<<<< HEAD
 //constante boton exportar
 const exportTasksBtn = document.getElementById("exportTasksBtn");
 
 let currentUser = null;
 let tasksUser = []
 let currentFilteredTasks = []; //guarda lo que ve actualmente en tareas 
-=======
-let currentUser = null;
-let tasksUser = []
->>>>>>> upstream/develop
 
 // Al iniciar solo se ve validación
 hideUserSections(userInfo, form, messages);
@@ -128,7 +120,6 @@ applyFiltersBtn.addEventListener("click", () => {
 
     const result = processTasks(tasksUser, estados, sort, filterTasks, sortTasks);
 
-<<<<<<< HEAD
     currentFilteredTasks = result;  
 
     result.length === 0
@@ -149,9 +140,4 @@ exportTasksBtn.addEventListener("click", () => {
     const fileName = `tareas_pantalla_${currentUser.name.replace(/\s+/g, '_')}.json`;
     
     downloadJSONFile(jsonContent, fileName);
-=======
-    result.length === 0
-        ? tasksNull(container)
-        : renderTasks(container, result, currentUser);
->>>>>>> upstream/develop
 });
