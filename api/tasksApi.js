@@ -17,6 +17,7 @@ export async function createTask(task) {
 
     if (!res.ok) throw new Error("Error al registrar tarea");
     return res.json();
+<<<<<<< HEAD
 }
 
 export async function updateTaskApi(id, updatedData) {
@@ -35,4 +36,6 @@ export async function deleteTaskApi(id) {
     });
     if (!res.ok) throw new Error("No se pudo eliminar la tarea");
     return true;
+=======
+>>>>>>> upstream/develop
 }

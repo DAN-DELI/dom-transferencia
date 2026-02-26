@@ -619,6 +619,7 @@ body {
         opacity: 0;
         transform: scale(0.95);
     }
+<<<<<<< HEAD
 }
 
 /* ---------------------------------------------------------------
@@ -703,4 +704,6 @@ body {
     display: flex;
     gap: 10px;
     justify-content: flex-end;
+=======
+>>>>>>> upstream/develop
 }
