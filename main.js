@@ -9,6 +9,9 @@ import { showUserSections, hideUserSections } from "./ui/layoutUI.js";
 import { hideEmpty, hideUserUI } from "./ui/uiState.js";
 import { getSelectedValues, processTasks } from "./utils/helpers.js";
 
+import { generateTasksJSON } from "./services/exportService.js";
+import { downloadJSONFile } from "./ui/exportUI.js";
+
 const validateBtn = document.getElementById("validateBtn");
 const documentoInput = document.getElementById("documento");
 
@@ -33,8 +36,12 @@ const sortTasksArea = document.getElementById('sortTasks')
 const applyFiltersBtn = document.getElementById('applyFiltersBtn')
 const filterStatus = document.querySelectorAll(".filterStatus")
 
+//constante boton exportar
+const exportTasksBtn = document.getElementById("exportTasksBtn");
+
 let currentUser = null;
 let tasksUser = []
+let currentFilteredTasks = []; //guarda lo que ve actualmente en tareas 
 
 // Al iniciar solo se ve validación
 hideUserSections(userInfo, form, messages);
@@ -113,7 +120,24 @@ applyFiltersBtn.addEventListener("click", () => {
 
     const result = processTasks(tasksUser, estados, sort, filterTasks, sortTasks);
 
+    currentFilteredTasks = result;  
+
     result.length === 0
         ? tasksNull(container)
         : renderTasks(container, result, currentUser);
+});
+
+exportTasksBtn.addEventListener("click", () => {
+    // Si no se ha filtrado nada, se usa tasksUser, si ya se filtro, se usa currentFilteredTasks
+    const dataToExport = currentFilteredTasks.length > 0 ? currentFilteredTasks : tasksUser;
+
+    if (!currentUser || dataToExport.length === 0) {
+        alert("No hay tareas para exportar");
+        return;
+    }
+
+    const jsonContent = generateTasksJSON(dataToExport);
+    const fileName = `tareas_pantalla_${currentUser.name.replace(/\s+/g, '_')}.json`;
+    
+    downloadJSONFile(jsonContent, fileName);
 });

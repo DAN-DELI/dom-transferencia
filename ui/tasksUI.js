@@ -4,6 +4,7 @@
 
 import { getInitials, getCurrentTimestamp } from "../utils/helpers.js";
 import { showEmpty } from "./uiState.js";
+import { updateTaskApi, deleteTaskApi } from "../api/tasksApi.js";
 
 export function renderTasks(container, tasks, currentUser) {
     showEmpty(messagesFilters)
@@ -27,6 +28,10 @@ export function renderTasks(container, tasks, currentUser) {
                 <span class="message-card__username">${task.title}</span>
             </div>
             <span class="message-card__timestamp">${getCurrentTimestamp()}</span>
+            <div class="task-btns">
+                <button class="btn-edit">Editar</button>
+                <button class="btn-delete">Eliminar</button>
+            </div>
         </div>
         <div class="message-card__content">
             <p><strong>Descripción:</strong> ${task.description}</p>
@@ -34,8 +39,59 @@ export function renderTasks(container, tasks, currentUser) {
         </div>
         `;
 
+        card.querySelector('.btn-delete').onclick = async () => {
+            if (confirm("¿Eliminar esta tarea?")) {
+                await deleteTaskApi(task.id);
+                card.remove();
+                if (container.children.length === 0) tasksNull(container);
+            }
+        };
+
+        card.querySelector('.btn-edit').onclick = () => makeEditable(card, task);
+
         container.appendChild(card);
     });
+}
+
+// Función para transformar la card en formulario de edición
+function makeEditable(card, task) {
+    const content = card.querySelector('.message-card__content');
+    const originalHTML = content.innerHTML;
+
+    content.innerHTML = `
+        <div class="edit-mode">
+            <input type="text" class="form__input sm" value="${task.title}">
+            <textarea class="form__input sm">${task.description}</textarea>
+            <select class="form__input sm">
+                <option value="pendiente" ${task.status === 'pendiente' ? 'selected' : ''}>Pendiente</option>
+                <option value="en-progreso" ${task.status === 'en-progreso' ? 'selected' : ''}>En progreso</option>
+                <option value="completada" ${task.status === 'completada' ? 'selected' : ''}>Completada</option>
+            </select>
+            <div class="edit-actions">
+                <button class="btn--primary btn--sm btn-save">Guardar</button>
+                <button class="btn--secondary btn--sm btn-cancel">Cancelar</button>
+            </div>
+        </div>
+    `;
+
+    content.querySelector('.btn-cancel').onclick = () => content.innerHTML = originalHTML;
+
+    content.querySelector('.btn-save').onclick = async () => {
+        const newTitle = content.querySelector('input').value;
+        const newDesc = content.querySelector('textarea').value;
+        const newStatus = content.querySelector('select').value;
+
+        const updated = await updateTaskApi(task.id, { title: newTitle, description: newDesc, status: newStatus });
+        
+        task.title = updated.title;
+        task.description = updated.description;
+        task.status = updated.status;
+        card.querySelector('.message-card__username').textContent = updated.title;
+        content.innerHTML = `
+            <p><strong>Descripción:</strong> ${updated.description}</p>
+            <p><strong>Estado:</strong> ${updated.status}</p>
+        `;
+    };
 }
 
 export function tasksNull(container) {
