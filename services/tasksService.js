@@ -3,6 +3,9 @@
 // ---------------------------------------------------------------
 
 import { fetchTasks, createTask } from "../api/tasksApi.js";
+import { renderTasks, tasksNull } from "../ui/tasksUI.js";
+import { clearError, showError } from "../ui/uiState.js";
+import { getSelectedValues, isValidInput, processTasks } from "../utils/helpers.js";
 
 export async function getTasksByUser(userId) {
     const tasks = await fetchTasks();
@@ -64,4 +67,48 @@ export function sortTasks(tasks, criterio) {
         default:
             return copy;
     }
+}
+
+/**
+ * Valida todos los campos del formulario
+ * @returns {boolean} - true si todos los campos son válidos, false si alguno no lo es
+ */
+export function validateForm(taskTitle, taskDescription, taskStatus, taskTitleError, taskDescriptionError, taskStatusError) {
+    let isValid = true;
+
+    if (!isValidInput(taskTitle.value)) {
+        showError(taskTitleError, 'El título no puede estar vacío.');
+        isValid = false;
+    } else {
+        clearError(taskTitleError);
+    }
+
+    if (!isValidInput(taskDescription.value)) {
+        showError(taskDescriptionError, 'La descripción no puede estar vacía.');
+        isValid = false;
+    } else {
+        clearError(taskDescriptionError);
+    }
+
+    if (!isValidInput(taskStatus.value)) {
+        showError(taskStatusError, 'Debes seleccionar un estado.');
+        isValid = false;
+    } else {
+        clearError(taskStatusError);
+    }
+
+    return isValid;
+}
+
+export function orderFilter(filterStatus, sortTasksArea, tasksUser, container, currentUser) {
+    let currentFilteredTasks;
+
+    const estados = getSelectedValues(filterStatus);
+    const sort = sortTasksArea.value;
+
+    const result = processTasks(tasksUser, estados, sort, filterTasks, sortTasks);
+
+    currentFilteredTasks = result;
+
+    result.length === 0 ? tasksNull(container) : renderTasks(container, result, currentUser);
 }
