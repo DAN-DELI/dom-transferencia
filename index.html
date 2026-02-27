@@ -62,7 +62,7 @@
                     <!-- Título de la tarea -->
                     <div class="form__group">
                         <label for="taskTitle" class="form__label">Título de la tarea</label>
-                        <input type="text" id="taskTitle" class="form__input" placeholder="Ingresa el titulo..."
+                        <input type="text" id="taskTitleArea" class="form__input" placeholder="Ingresa el titulo..."
                             aria-required="true">
                         <span class="form__error" id="taskTitleError"></span>
                     </div>
@@ -70,7 +70,7 @@
                     <!-- Descripción de la tarea -->
                     <div class="form__group">
                         <label for="taskDescription" class="form__label">Descripción</label>
-                        <textarea id="taskDescription" class="form__input form__textarea"
+                        <textarea id="taskDescriptionArea" class="form__input form__textarea"
                             placeholder="Describe la tarea en detalle..." rows="4" aria-required="true"></textarea>
                         <span class="form__error" id="taskDescriptionError"></span>
                     </div>
@@ -78,7 +78,7 @@
                     <!-- Estado de la tarea -->
                     <div class="form__group">
                         <label for="taskStatus" class="form__label">Estado</label>
-                        <select id="taskStatus" class="form__input" aria-required="true">
+                        <select id="taskStatusArea" class="form__input" aria-required="true">
                             <option value="">Selecciona un estado</option>
                             <option value="pendiente">Pendiente</option>
                             <option value="en-progreso">En progreso</option>
@@ -102,7 +102,7 @@
             <!-- numero de mensajes publicados -->
             <div class="messages-header">
                 <h2 class="messages-header__title">Mensajes Publicados</h2>
-                
+
                 <div class="messages-header__actions">
                     <button id="exportTasksBtn" class="btn btn--primary btn--sm">
                         Exportar tareas
