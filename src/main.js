@@ -128,12 +128,12 @@ taskForm.addEventListener("submit", async e => {
     taskStatusArea.value = ''
 
     // en caso de que tenga un filtro u orden activado: 
-    orderFilter(filterStatus, sortTasksArea, tasksUser, container, currentUser)
+    orderFilter(filterStatus, sortTasksArea, container, currentUser)
 });
 
 // ================= FILTRAR Y ORDENAR =================
 applyFiltersBtn.addEventListener("click", () => {
-    orderFilter(filterStatus, sortTasksArea, tasksUser, container, currentUser)
+    orderFilter(filterStatus, sortTasksArea, container, currentUser)
 });
 
 // ================= EXPORTAR TAREAS =================
