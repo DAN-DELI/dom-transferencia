@@ -5,8 +5,9 @@
 import { getInitials, getCurrentTimestamp } from "../utils/helpers.js";
 import { showEmpty } from "./uiState.js";
 import { updateTaskApi, deleteTaskApi } from "../api/tasksApi.js";
+import { postDelete } from "../services/tasksService.js";
 
-export function renderTasks(container, tasks, currentUser) {
+export function renderTasks(container, tasks, currentUser, messagesFilters) {
     showEmpty(messagesFilters)
     container.innerHTML = "";
 
@@ -43,7 +44,9 @@ export function renderTasks(container, tasks, currentUser) {
             if (confirm("¿Eliminar esta tarea?")) {
                 await deleteTaskApi(task.id);
                 card.remove();
-                if (container.children.length === 0) tasksNull(container);
+
+                // si no quedan mas tareas, limpia el UI
+                postDelete(currentUser.id, container, messagesFilters)
             }
         };
 
@@ -82,7 +85,7 @@ function makeEditable(card, task) {
         const newStatus = content.querySelector('select').value;
 
         const updated = await updateTaskApi(task.id, { title: newTitle, description: newDesc, status: newStatus });
-        
+
         task.title = updated.title;
         task.description = updated.description;
         task.status = updated.status;
@@ -116,4 +119,16 @@ export function resetFiltersUI(filterStatus, sortTasks) {
     // resetear select
     sortTasks.value = "";
 
+}
+
+export function filterVoid(container) {
+    container.innerHTML = `
+    <div class="messages-empty" id="emptyState">
+        <svg class="messages-empty__icon" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+        <p class="messages-empty__text">No tienes tareas en este estado.</p>
+        <p class="messages-empty__subtext">Prueba con otro filtro o limpia la selección.</p>
+    </div>
+    `;
 }
