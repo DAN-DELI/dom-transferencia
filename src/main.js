@@ -64,13 +64,12 @@ validateBtn.addEventListener("click", async () => {
 
     try {
         tasksUser = []
-        currentUser = null
+        currentUser = null;
         currentUser = await validateUserService(id);
 
         if (currentUser == null) {
             hideUserUI(userInfo, form, messages);
-            alert("Usuario no registrado")
-            console.log("Usuario no registrado")
+            showNotification("Usuario no registrado.", "error");
             return;
         }
 
