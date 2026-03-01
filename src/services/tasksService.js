@@ -100,15 +100,19 @@ export function validateForm(taskTitle, taskDescription, taskStatus, taskTitleEr
     return isValid;
 }
 
-export function orderFilter(filterStatus, sortTasksArea, tasksUser, container, currentUser) {
-    let currentFilteredTasks;
+export async function orderFilter(filterStatus, sortTasksArea, container, currentUser) {
+    let tasks = await getTasksByUser(currentUser.id);
 
     const estados = getSelectedValues(filterStatus);
     const sort = sortTasksArea.value;
 
-    const result = processTasks(tasksUser, estados, sort, filterTasks, sortTasks);
+    const result = processTasks(tasks, estados, sort, filterTasks, sortTasks);
 
-    currentFilteredTasks = result;
+    let currentFilteredTasks = result;
+
+    console.log(result + "desde orderFilter")
 
     result.length === 0 ? tasksNull(container) : renderTasks(container, result, currentUser);
+
+    return currentFilteredTasks;
 }
