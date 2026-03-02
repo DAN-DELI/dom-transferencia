@@ -8,10 +8,9 @@
 // ---------------------------------------------------------------
 
 import { validateUserService } from "./services/userService.js";
-import { filterTasks, getTasksByUser, orderFilter, saveTask, sortTasks, validateForm } from "./services/tasksService.js";
-import { renderTasks, resetFiltersUI, tasksNull } from "./ui/tasksUI.js";
+import { getTasksByUser, orderFilter, saveTask, validateForm } from "./services/tasksService.js";
+import { renderTasks, resetFiltersUI, tasksNull, updateMessageCounter } from "./ui/tasksUI.js";
 import { hideEmpty, hideUserUI, showUserUI } from "./ui/uiState.js";
-import { getSelectedValues, processTasks } from "./utils/helpers.js";
 import { showNotification } from "./ui/notificationsUI.js";
 import { generateTasksJSON } from "./services/exportService.js";
 import { downloadJSONFile } from "./ui/exportUI.js";
@@ -94,8 +93,12 @@ validateBtn.addEventListener("click", async () => {
             hideEmpty(messagesFilters)
             tasksNull(container)
         } else {
-            renderTasks(container, tasksUser, currentUser);
+            renderTasks(container, tasksUser, currentUser, messagesFilters);
         }
+
+        //Contador de las tareas que hay al iniciar usuario
+        updateMessageCounter(tasksUser.length);
+
         showNotification(`¡Hola de nuevo, ${currentUser.name}!`, "success");
         resetFiltersUI(filterStatus, sortTasksArea)
 
@@ -145,7 +148,7 @@ taskForm.addEventListener("submit", async e => {
     taskStatusArea.value = ''
 
     // en caso de que tenga un filtro u orden activado: 
-    orderFilter(filterStatus, sortTasksArea, container, currentUser)
+    currentFilteredTasks = await orderFilter(filterStatus, sortTasksArea, container, currentUser)
 });
 
 // ================= FILTRAR Y ORDENAR =================
@@ -153,8 +156,8 @@ taskForm.addEventListener("submit", async e => {
  * Aplica filtro y orden a las tareas mostradas llamando a
  * `orderFilter` desde el servicio de tareas.
  */
-applyFiltersBtn.addEventListener("click", () => {
-    orderFilter(filterStatus, sortTasksArea, container, currentUser)
+applyFiltersBtn.addEventListener("click", async () => {
+    currentFilteredTasks = await orderFilter(filterStatus, sortTasksArea, container, currentUser)
 });
 
 // ================= EXPORTAR TAREAS =================

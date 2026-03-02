@@ -3,8 +3,8 @@
 // ---------------------------------------------------------------
 
 import { fetchTasks, createTask } from "../api/tasksApi.js";
-import { renderTasks, tasksNull } from "../ui/tasksUI.js";
-import { clearError, showError } from "../ui/uiState.js";
+import { filterVoid, renderTasks, tasksNull, updateMessageCounter } from "../ui/tasksUI.js";
+import { clearError, hideEmpty, showError } from "../ui/uiState.js";
 import { getSelectedValues, isValidInput, processTasks } from "../utils/helpers.js";
 
 /**
@@ -132,9 +132,26 @@ export async function orderFilter(filterStatus, sortTasksArea, container, curren
 
     let currentFilteredTasks = result;
 
-    console.log(result + "desde orderFilter")
+    const messagesFilters = document.getElementById("messagesFilters");
 
-    result.length === 0 ? tasksNull(container) : renderTasks(container, result, currentUser);
+    result.length === 0 ? filterVoid(container) : renderTasks(container, result, currentUser, messagesFilters);
+
+    updateMessageCounter(result.length);
 
     return currentFilteredTasks;
 }
+
+// analiza las tareas del usuario, al igual que las filtras y maneja la UI a base de estas
+export async function postDelete(userId, container, messagesFilters) {
+    let tareas = await getTasksByUser(userId)
+
+    //al eliminarse la tarea se actualiza el contador
+    updateMessageCounter(tareas.length);
+
+    if (tareas.length == 0) {
+        tasksNull(container)
+        hideEmpty(messagesFilters)
+    } else if (container.children.length === 0) {
+        filterVoid(container)
+    }
+};
