@@ -139,7 +139,7 @@ taskForm.addEventListener("submit", async e => {
     await saveTask(task);
 
     tasksUser = await getTasksByUser(currentUser.id, emptyState);
-    renderTasks(container, tasksUser, currentUser, emptyState, messagesFilters);
+    renderTasks(container, tasksUser, currentUser, messagesFilters);
     showNotification("¡Tarea registrada con éxito!", "success");
     e.target.reset();
 
@@ -149,6 +149,14 @@ taskForm.addEventListener("submit", async e => {
 
     // visibilidad para la card de filtro y orden
     showEmpty(messagesFilters)
+
+    // si es la primera tarea del usuario, limpia el filtro 
+    if (tasksUser.length == 1) {
+        resetFiltersUI(filterStatus, sortTasksArea)
+        updateMessageCounter(tasksUser.length);
+        currentFilteredTasks = [];
+        return;
+    }
 
     // en caso de que tenga un filtro u orden activado: 
     currentFilteredTasks = await orderFilter(filterStatus, sortTasksArea, container, currentUser)

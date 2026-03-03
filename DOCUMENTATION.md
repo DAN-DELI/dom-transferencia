@@ -100,7 +100,7 @@ Responsabilidad:
 - Renderizado de las tarjetas de tareas, manejo inline de edición y eliminación.
 
 Funciones importantes:
-- `renderTasks(container, tasks, currentUser)`: limpia el contenedor e inserta tarjetas; si está vacía llama a `tasksNull()`.
+- `renderTasks(container, tasks, currentUser, messagesFilters)`: limpia el contenedor e inserta tarjetas; si está vacía llama a `tasksNull()`.
 - `makeEditable(card, task)`: transforma la tarjeta en un pequeño formulario inline; guarda via `updateTaskApi` y actualiza la UI con la respuesta.
 - `tasksNull(container)`: bloque HTML para estado vacío.
 - `resetFiltersUI(filterStatus, sortTasks)`: limpia checkboxes y select.
