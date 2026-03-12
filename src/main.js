@@ -190,3 +190,11 @@ exportTasksBtn.addEventListener("click", () => {
 
     downloadJSONFile(jsonContent, fileName);
 });
+
+
+
+
+// BORRAR ESTO YA QUE NO DEBE IR A PRODUCCION.
+document.addEventListener('DOMContentLoaded', function () {
+    showUserUI(userInfo, form, messages);
+});

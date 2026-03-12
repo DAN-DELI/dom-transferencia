@@ -762,3 +762,109 @@ body {
     opacity: 0;
     transform: translateX(100%);
 }
+
+
+
+
+
+ /* AREA DE ASIGNACIÓN DE USUARIOS */
+
+/* Buscador Unificado (Sin fondo tenue) */
+.search-box {
+    display: flex;
+    align-items: center;
+    background: transparent; /* Eliminamos el fondo gris tenue */
+    border: 2px solid var(--color-gray-200);
+    border-radius: var(--radius-full);
+    padding: 2px 2px 2px 14px;
+    transition: all var(--transition-base);
+    margin-bottom: var(--spacing-md);
+}
+
+/* El "Brillo" azul solo aparece aquí cuando haces clic dentro */
+.search-box:focus-within {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-lighter);
+    background: white; /* Se vuelve blanco sólido al escribir */
+}
+
+.search-box .form__input.sm {
+    border: none !important;
+    background: transparent;
+    margin-bottom: 0;
+    padding: 8px 0;
+    outline: none;
+    flex-grow: 1;
+}
+
+/* Botón Lupa Circular */
+.btn-search-circle {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background-color: var(--color-primary);
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s, background-color 0.2s;
+    flex-shrink: 0;
+}
+
+.btn-search-circle:hover {
+    background-color: var(--color-primary-dark);
+    transform: scale(1.05);
+}
+
+/* Lista de usuarios con scroll */
+.user-scroll-container {
+    max-height: 180px;
+    overflow-y: auto;
+    border: 1px solid var(--color-gray-200);
+    border-radius: var(--radius-md);
+    background: white;
+}
+
+/* Estilo de cada fila de usuario */
+.user-assign-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    gap: 12px;
+    border-bottom: 1px solid var(--color-gray-50);
+}
+
+.user-assign-item:hover {
+    background-color: var(--color-gray-50);
+}
+
+
+/* Tags de seleccionados */
+.selected-summary {
+    margin-top: var(--spacing-sm);
+}
+
+.text-muted {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    font-weight: 500;
+}
+
+.tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 4px;
+}
+
+.tag-user {
+    background-color: var(--color-primary-lighter);
+    color: var(--color-primary);
+    border: 1px solid var(--color-primary-light);
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+    font-size: 11px;
+    font-weight: 600;
+}
