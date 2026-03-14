@@ -160,13 +160,17 @@ taskForm.addEventListener("submit", async e => {
         createdAt: new Date().toISOString()
     };
 
+    //persiste la tarea en el backend
     await saveTask(task);
 
-    tasksUser = await getTasksByUser(currentUser.id, emptyState);
+    //Sincroniza la lista local con el servidor
+    const updatedTasks = await getTasksByUser(currentUser.id);
+    tasksUser = updatedTasks;
+
     renderTasks(container, tasksUser, currentUser, messagesFilters);
     showNotification("¡Tarea registrada con éxito!", "success");
-    e.target.reset();
 
+    e.target.reset();
     taskTitleArea.value = ''
     taskDescriptionArea.value = ''
     taskStatusArea.value = ''

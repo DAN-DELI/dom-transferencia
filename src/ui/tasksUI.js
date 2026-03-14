@@ -61,7 +61,7 @@ export function renderTasks(container, tasks, currentUser, messagesFilters) {
             }
         };
 
-        card.querySelector('.btn-edit').onclick = () => makeEditable(card, task);
+        card.querySelector('.btn-edit').onclick = () => makeEditable(card, task, currentUser);
 
         container.appendChild(card);
     });
@@ -75,19 +75,28 @@ export function renderTasks(container, tasks, currentUser, messagesFilters) {
  * @param {HTMLElement} card - Elemento que contiene la tarjeta
  * @param {Object} task - Objeto tarea asociado a la tarjeta
  */
-function makeEditable(card, task) {
+function makeEditable(card, task, currentUser) {
     const content = card.querySelector('.message-card__content');
     const originalHTML = content.innerHTML;
 
+    const isUser = currentUser.role === 'user';
+
     content.innerHTML = `
         <div class="edit-mode">
-            <input type="text" class="form__input sm" value="${task.title}">
-            <textarea class="form__input sm">${task.description}</textarea>
+            <input type="text" class="form__input sm" value="${task.title}" 
+                ${isUser ? 'readonly' : ''} 
+                style="${isUser ? 'background-color: #f3f4f6; cursor: not-allowed; color: #6b7280;' : ''}">
+            
+            <textarea class="form__input sm" 
+                ${isUser ? 'readonly' : ''} 
+                style="${isUser ? 'background-color: #f3f4f6; cursor: not-allowed; color: #6b7280;' : ''}">${task.description}</textarea>
+            
             <select class="form__input sm">
                 <option value="pendiente" ${task.status === 'pendiente' ? 'selected' : ''}>Pendiente</option>
                 <option value="en-progreso" ${task.status === 'en-progreso' ? 'selected' : ''}>En progreso</option>
                 <option value="completada" ${task.status === 'completada' ? 'selected' : ''}>Completada</option>
             </select>
+            
             <div class="edit-actions">
                 <button class="btn--primary btn--sm btn-save">Guardar</button>
                 <button class="btn--secondary btn--sm btn-cancel">Cancelar</button>
@@ -102,7 +111,12 @@ function makeEditable(card, task) {
         const newDesc = content.querySelector('textarea').value;
         const newStatus = content.querySelector('select').value;
 
-        const updated = await updateTaskApi(task.id, { title: newTitle, description: newDesc, status: newStatus });
+// Si es usuario, ignoramos cambios en título/descripción
+        const dataToUpdate = isUser 
+        ? { status: newStatus } // Si es user, solo enviamos el estado
+        : { title: newTitle, description: newDesc, status: newStatus };
+        const updated = await updateTaskApi(task.id, dataToUpdate);
+        // const updated = await updateTaskApi(task.id, { title: newTitle, description: newDesc, status: newStatus });
 
         task.title = updated.title;
         task.description = updated.description;
