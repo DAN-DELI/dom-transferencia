@@ -965,3 +965,31 @@ body {
     color: var(--color-gray-500);
     font-style: italic;
 }
+
+/* ===========================================
+   ESTILOS PARA MODALES (Ventanas Flotantes)
+   =========================================== */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6); /* Fondo semitransparente oscuro */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Asegura que esté por encima de todo */
+}
+
+.modal-content {
+    min-width: 400px;
+    max-width: 90%;
+    margin: 0; /* Resetea márgenes para centrar bien */
+    animation: fadeIn 0.3s ease-out; /* Una pequeña animación al aparecer */
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
