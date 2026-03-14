@@ -673,7 +673,8 @@ body {
     background: #ef4444; /* Rojo como en tu imagen */
 }
 
-.btn-edit:hover, .btn-delete:hover {
+.btn-edit:hover,
+.btn-delete:hover {
     opacity: 0.9;
     transform: scale(1.05);
 }
@@ -739,11 +740,22 @@ body {
     transition: opacity var(--transition-base) ease-out, transform var(--transition-base) ease-out;
 }
 
-/* Colores según el tipo de mensaje usando tus variables */
-.toast--success { background-color: var(--color-success); }
-.toast--error { background-color: var(--color-error); }
-.toast--info { background-color: var(--color-info); }
-.toast--warning { background-color: var(--color-warning); }
+/* Colores según el tipo de mensaje usando variables */
+.toast--success {
+    background-color: var(--color-success);
+}
+
+.toast--error {
+    background-color: var(--color-error);
+}
+
+.toast--info {
+    background-color: var(--color-info);
+}
+
+.toast--warning {
+    background-color: var(--color-warning);
+}
 
 /* Animación de entrada desde la derecha */
 @keyframes slideInRight {
