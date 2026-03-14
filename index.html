@@ -11,27 +11,35 @@
 <body>
     <div class="container">
         <!-- ENCABEZADO PRINCIPAL  -->
-        <header class="header">
-            <h1 class="header__title">Registro de Mensajes</h1>
+        <header class="header hidden">
+            <h1 class="header__title">Registro de Tareas</h1>
             <p class="header__subtitle">Practica la manipulación del DOM en tiempo real</p>
         </header>
 
         <!-- VALIDACION DE USUARIO -->
-        <section class="validation-section">
-            <div class="card">
-                <h2 class="card__title">Validación de Usuario</h2>
 
-                <div class="form__group">
-                    <label for="documento" class="form__label">Id de Usuario</label>
-                    <input type="text" id="documento" class="form__input" name="documento"
-                        placeholder="Ingresa tu id...">
+
+
+        <div id="login-wrapper" class="login-wrapper">
+            <section class="validation-section validation-section--no-margin">
+                <div class="card card--login">
+                    <div class="login-title">Registro de Tareas</div>
+                    <h2 class="card__title">Acceder</h2>
+                    <p class="card__subtitle">Usa tu ID de sistema</p>
+
+                    <div class="form__group form__group--no-margin">
+                        <input type="text" id="documento" class="form__input" placeholder="Id de Usuario"
+                            autocomplete="off">
+                    </div>
+
+                    <div class="login-footer">
+                        <button type="button" id="validateBtn" class="btn btn--primary btn--full">
+                            Siguiente
+                        </button>
+                    </div>
                 </div>
-                <button type="button" id="validateBtn" class="btn btn--primary">
-                    <span class="btn__text">Validar Usuario</span>
-                    <span class="btn__icon">✓</span>
-                </button>
-            </div>
-        </section>
+            </section>
+        </div>
 
         <!-- MOSTRAR INFORMACION DE USUARIO  -->
         <section id="userInfo" class="validation-section hidden">
@@ -49,6 +57,33 @@
                     <span class="user-info__label">Email:</span>
                     <span id="userEmailDisplay" class="user-info__value"></span>
                 </div>
+            </div>
+        </section>
+
+        <!-- MOSTRAR CARDS DE ADMINISTRACION (ROL - ADMIN)  -->
+        <section id="admin-console" class="validation-section hidden">
+            <div class="admin-grid">
+                <div class="card card--interactive" id="manage-users-btn">
+                    <div class="card__icon">👥</div>
+                    <h2 class="card__title">Gestión de Equipo</h2>
+                    <p class="card__text">Registrar, editar y eliminar usuarios del sistema.</p>
+                </div>
+
+                <div class="card card--interactive" id="supervise-tasks-btn">
+                    <div class="card__icon">📊</div>
+                    <h2 class="card__title">Supervisar Tareas</h2>
+                    <p class="card__text">Filtros globales y distribución de carga de trabajo.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="admin-users-crud" class="form-section hidden">
+            <div class="card">
+                <div class="card__header-flex">
+                    <h2 class="card__title">Administración de Usuarios</h2>
+                    <button id="close-users-crud" class="btn btn--secondary btn--sm">Volver</button>
+                </div>
+                <div id="users-table-container"></div>
             </div>
         </section>
 
@@ -183,7 +218,7 @@
         </section>
 
         <!-- FOOTER INFORMATIVO -->
-        <footer class="footer">
+        <footer class="footer hidden">
             <p class="footer__text">Ejercicio de manipulación del DOM | SENA - Desarrollo Web</p>
         </footer>
     </div>
