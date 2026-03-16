@@ -1,7 +1,9 @@
 import { fetchTasks, deleteTaskApi, updateTaskApi, createTask } from "./api/tasksApi.js";
-import { fetchUsers } from "./api/usersApi.js";
+import { fetchUsers, deleteUserApi, updateUserApi, createUserApi } from "./api/usersApi.js";
+import { validateForm } from "./services/tasksService.js";
 import { showNotification } from "./ui/notificationsUI.js";
-import { getCurrentTimestamp } from "./utils/helpers.js";
+import { hideEmpty } from "./ui/uiState.js";
+import { formatFecha, getCurrentTimestamp } from "./utils/helpers.js";
 
 
 // ===============================================================
@@ -18,7 +20,15 @@ const container = document.getElementById("messagesContainer");
 const nameDisplay = document.getElementById("userNameDisplay");
 const emailDisplay = document.getElementById("userEmailDisplay");
 const userRolDisplay = document.getElementById("userRolDisplay");
+const body = document.querySelector("body");
 
+// form de tareas
+const taskTitleArea = document.getElementById("taskTitleArea");
+const taskDescriptionArea = document.getElementById("taskDescriptionArea");
+const taskStatusArea = document.getElementById("taskStatusArea");
+const taskTitleError = document.getElementById("taskTitleError")
+const taskDescriptionError = document.getElementById("taskDescriptionError")
+const taskStatusError = document.getElementById("taskStatusError")
 
 let currentUser = null;
 
@@ -129,19 +139,21 @@ function renderAdminTasksTable(tasksToRender) {
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
-            <td><strong>#${task.id}</strong></td>
             <td>${userName} <br><small style="color: var(--color-gray-500)">ID: ${task.userId}</small></td>
-            <td>${task.descripcion}</td>
-            <td>${task.fecha}</td>
+            <td>${task.title}</td>
+            <td>${task.description}</td>
+            <td>${task.createdAt}</td>
             <td>
                 <span style="background-color: ${statusColor}; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem;">
-                    ${statusText}
+                    ${task.status}
                 </span>
             </td>
             <td>
-                <div style="display: flex; gap: 8px; align-items: center;">
-                    <button class="btn btn--primary btn-edit-task" data-id="${task.id}" style="padding: 5px 10px; font-size: 0.8rem; white-space: nowrap;">✏️ Editar</button>
-                    <button class="btn btn--danger btn-delete-task" data-id="${task.id}" style="padding: 5px 10px; font-size: 0.8rem; white-space: nowrap;">🗑️ Eliminar</button>
+                <div style="display:flex; flex-direction:column; gap:6px; align-items:stretch;">
+
+                    <button class="btn btn--primary btn-edit-task" data-id="${task.id}" style="padding:5px 10px; font-size:0.8rem; white-space:nowrap;">✏️ Editar</button>
+                    <button class="btn btn--danger btn-delete-task" data-id="${task.id}" style="padding:5px 10px; margin-top: 10px;  font-size:0.8rem; white-space:nowrap;">🗑️ Eliminar</button>
+
                 </div>
             </td>
         `;
@@ -266,40 +278,56 @@ const btnNewGlobalTask = document.getElementById("btnNewGlobalTask");
 const modalNewGlobalTask = document.getElementById("modalNewGlobalTask");
 const btnCancelGlobalTask = document.getElementById("btnCancelGlobalTask");
 const formNewGlobalTask = document.getElementById("formNewGlobalTask");
+
 const globalTaskUser = document.getElementById("globalTaskUser");
 const globalTaskDesc = document.getElementById("globalTaskDesc");
+const taskSection = document.getElementById("task-section")
 
 // 5.1. Abrir Modal y llenar la lista de usuarios
 btnNewGlobalTask.addEventListener("click", () => {
     // Llenar el <select> con los usuarios reales
-    globalTaskUser.innerHTML = '<option value="">Selecciona un usuario...</option>';
-    allUsers.forEach(user => {
-        const option = document.createElement("option");
-        option.value = user.id;
-        option.textContent = `${user.name} (ID: ${user.document || user.id})`;
-        globalTaskUser.appendChild(option);
-    });
+    // globalTaskUser.innerHTML = '<option value="">Selecciona un usuario...</option>';
+    // allUsers.forEach(user => {
+    //     const option = document.createElement("option");
+    //     option.value = user.id;
+    //     option.textContent = `${user.name} (ID: ${user.document || user.id})`;
+    //     globalTaskUser.appendChild(option);
+    // });
 
     // Mostrar el modal
-    modalNewGlobalTask.classList.remove("hidden");
+    // modalNewGlobalTask.classList.remove("hidden");
+    taskSection.classList.remove("hidden");
+    body.classList.add("no-scroll")
 });
 
 // 5.2. Cerrar Modal
 btnCancelGlobalTask.addEventListener("click", () => {
-    modalNewGlobalTask.classList.add("hidden");
+
+    taskSection.classList.add("hidden");
+    body.classList.remove("no-scroll");
+
     formNewGlobalTask.reset(); // Limpiar el formulario
+
+    hideEmpty(taskTitleError);
+    hideEmpty(taskDescriptionError);
+    hideEmpty(taskStatusError);
 });
 
 // 5.3. Guardar la nueva tarea
 formNewGlobalTask.addEventListener("submit", async (e) => {
     e.preventDefault(); // Evitar que la página se recargue
 
+    if (!validateForm(taskTitleArea, taskDescriptionArea, taskStatusArea, taskTitleError, taskDescriptionError, taskStatusError)) {
+        return;
+    }
+
     // Construir el objeto de la nueva tarea
     const newTask = {
-        userId: globalTaskUser.value,
-        descripcion: globalTaskDesc.value.trim(),
-        estado: "pendiente",
-        fecha: getCurrentTimestamp() // Usamos tu helper para la fecha actual
+        // userId: globalTaskDesc.value.trim(), AQUI AGREGAR LOS USUARIOS A QUIENES SE LES ASIGNA LA TAREA
+        title: taskTitleArea.value.trim(),
+        description: taskDescriptionArea.value.trim(),
+        status: taskStatusArea.value,
+        createdAt: getCurrentTimestamp()
     };
 
     try {
@@ -527,9 +555,7 @@ formUser.addEventListener("submit", async (e) => {
 
     if (isEditing) {
         // LÓGICA DE EDICIÓN (Con confirmación personalizada)
-        showCustomConfirm(
-            "Confirmar Modificación",
-            `¿Estás seguro de que deseas guardar los cambios para ${userData.name}?`,
+        if (confirm(`¿Seguro que quieres actualizar los datos de ${userData.name}?`)) {
             async () => {
                 try {
                     await updateUserApi(editUserId.value, userData);
@@ -537,31 +563,80 @@ formUser.addEventListener("submit", async (e) => {
                     allUsers[index] = { ...allUsers[index], ...userData };
                     applyUserFilters();
                     modalUserForm.classList.add("hidden");
-                    alert("Usuario actualizado correctamente");
+
+                    if (confirmAction) {
+                        await confirmAction();
+                    }
+
+
+                    showNotification("Usuario actualizado correctamente", "success")
                 } catch (error) {
                     alert("Error al actualizar");
                 }
             }
-        );
-    } else {
-        // LÓGICA DE CREACIÓN (Directa)
-        try {
-            const newUser = await createUserApi(userData);
+        } else {
+            // LÓGICA DE CREACIÓN (Directa)
+            try {
+                const newUser = await createUserApi(userData);
 
-            // 1. Agregar a nuestra lista local
-            allUsers.push(newUser);
+                // 1. Agregar a nuestra lista local
+                allUsers.push(newUser);
 
-            // 2. Redibujar la tabla de usuarios
-            applyUserFilters();
+                // 2. Redibujar la tabla de usuarios
+                applyUserFilters();
 
-            // 3. Cerrar y limpiar
-            modalUserForm.classList.add("hidden");
-            formUser.reset();
+                // 3. Cerrar y limpiar
+                modalUserForm.classList.add("hidden");
+                formUser.reset();
 
-            alert(`¡Usuario ${newUser.name} creado con éxito! Su contraseña inicial es su documento.`);
-        } catch (error) {
-            console.error("Error al crear:", error);
-            alert("No se pudo crear el usuario. Revisa la consola.");
+                showNotification("Usuario creado correctamente", "success")
+            } catch (error) {
+                console.error("Error al crear:", error);
+                alert("No se pudo crear el usuario. Revisa la consola.");
+            }
         }
     }
 });
+
+
+
+
+// if (confirm(`¿Seguro que quieres actualizar los datos de ${userData.name}?`)) {
+//     async () => {
+//         try {
+//             await updateUserApi(editUserId.value, userData);
+//             const index = allUsers.findIndex(u => String(u.id) === String(editUserId.value));
+//             allUsers[index] = { ...allUsers[index], ...userData };
+//             applyUserFilters();
+//             modalUserForm.classList.add("hidden");
+
+//             if (confirmAction) {
+//                 await confirmAction();
+//             }
+
+//             showNotification("Usuario actualizado correctamente", "success")
+//         } catch (error) {
+//             alert("Error al actualizar");
+//         }
+//     }
+// } else {
+//     // LÓGICA DE CREACIÓN (Directa)
+//     try {
+//         const newUser = await createUserApi(userData);
+
+//         // 1. Agregar a nuestra lista local
+//         allUsers.push(newUser);
+
+//         // 2. Redibujar la tabla de usuarios
+//         applyUserFilters();
+
+//         // 3. Cerrar y limpiar
+//         modalUserForm.classList.add("hidden");
+//         formUser.reset();
+
+//         showNotification("Usuario creado correctamente", "success")
+//     } catch (error) {
+//         console.error("Error al crear:", error);
+//         alert("No se pudo crear el usuario. Revisa la consola.");
+//     }
+// }

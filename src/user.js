@@ -7,13 +7,13 @@
 // - Exporta las tareas visibles
 // ---------------------------------------------------------------
 
-import { validateUserService } from "./services/userService.js";
 import { getTasksByUser, orderFilter, saveTask, validateForm } from "./services/tasksService.js";
 import { renderTasks, resetFiltersUI, tasksNull, updateMessageCounter } from "./ui/tasksUI.js";
 import { hideEmpty, hideUserUI, showAdminUI, showEmpty, showUserUI } from "./ui/uiState.js";
 import { showNotification } from "./ui/notificationsUI.js";
 import { generateTasksJSON } from "./services/exportService.js";
 import { downloadJSONFile } from "./ui/exportUI.js";
+import { getCurrentTimestamp } from "./utils/helpers.js";
 
 const header = document.querySelector(".header");
 const loginWrapper = document.getElementById("login-wrapper");
@@ -125,7 +125,7 @@ taskForm.addEventListener("submit", async e => {
         title: taskTitleArea.value.trim(),
         description: taskDescriptionArea.value.trim(),
         status: taskStatusArea.value,
-        createdAt: new Date().toISOString()
+        createdAt: getCurrentTimestamp()
     };
 
     await saveTask(task);

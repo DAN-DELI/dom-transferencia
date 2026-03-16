@@ -85,27 +85,30 @@
       "role": "admin"
     },
     {
-      "id": "13",
-      "name": "Usuario de Prueba",
-      "email": "test@correo.com",
-      "document": 999,
-      "role": "user"
-    },
-    {
       "id": "23",
       "name": "Don Admin",
       "email": "pedro.lopez@example.com",
       "document": 12,
       "role": "admin"
-    },
-    {
-      "id": "6f8c",
-      "name": "ASI SI CUENTA??????",
-      "email": "carlos.ramirez@example.com",
-      "document": 102,
-      "role": "user"
     }
   ],
-  "tasks": [],
+  "tasks": [
+    {
+      "id": "680b",
+      "userId": "2",
+      "title": "as",
+      "description": "das",
+      "status": "pendiente",
+      "createdAt": "16 de marzo de 2026, 09:52"
+    },
+    {
+      "id": "0cdf",
+      "userId": "2",
+      "title": "sa",
+      "description": "fasd",
+      "status": "en-progreso",
+      "createdAt": "16 de marzo de 2026, 09:52"
+    }
+  ],
   "$schema": "./node_modules/json-server/schema.json"
 }

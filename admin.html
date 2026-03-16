@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración - Registro de Tareas</title>
     <link rel="stylesheet" href="src/styles.css">
+    <link rel="stylesheet" href="src/admin.css">
 </head>
 
 <body>
@@ -14,8 +15,8 @@
 
         <!-- ENCABEZADO PRINCIPAL  -->
         <header class="header">
-            <h1 class="header__title">Registro de Tareas</h1>
-            <p class="header__subtitle">Practica la manipulación del DOM en tiempo real</p>
+            <h1 class="header__title">Panel de Administración</h1>
+            <p class="header__subtitle">Gestión global de tareas y usuarios</p>
         </header>
 
         <!-- MOSTRAR INFORMACION DE USUARIO  -->
@@ -24,7 +25,7 @@
 
                 <div id="userConfirm">
                     <h2 class="card__title">¡Te damos la bienvenida!</h2>
-                    <button id="logoutBtn" class="btn-text-logout">
+                    <button id="btnAdminLogout" class="btn-text-logout">
                         Cerrar Sesión
                     </button>
                 </div>
@@ -50,24 +51,14 @@
         </section>
 
         <!-- CONTENEDOR PRINCIPAL -->
-        <div class="container">
-            <header class="header">
-                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                    <div>
-                        <h1 class="header__title">Panel de Administración</h1>
-                        <p class="header__subtitle">Gestión global de tareas y usuarios</p>
-                    </div>
-                    <button id="btnAdminLogout" class="btn btn--danger">Cerrar Sesión</button>
-                </div>
-
-                <div
-                    style="display: flex; gap: 10px; margin-top: 20px; border-bottom: 2px solid var(--color-gray-200); padding-bottom: 10px;">
-                    <button id="tabTasks" class="btn btn--primary">Gestión de Tareas</button>
-                    <button id="tabUsers" class="btn"
-                        style="background-color: var(--color-gray-200); color: var(--color-text-primary);">Gestión de
-                        Usuarios</button>
-                </div>
-            </header>
+        <div class="card">
+            <div class="admin-tabs"
+                style="display: flex; gap: 10px; border-bottom: 2px solid var(--color-gray-200); padding-bottom: 25px;">
+                <button id="tabTasks" class="btn btn--primary">Gestión de Tareas</button>
+                <button id="tabUsers" class="btn"
+                    style="background-color: var(--color-gray-200); color: var(--color-text-primary);">Gestión de
+                    Usuarios</button>
+            </div>
 
             <section id="tasksSection" class="admin-section">
 
@@ -88,8 +79,8 @@
                     <table class="admin-table">
                         <thead>
                             <tr>
-                                <th>ID</th>
                                 <th>Usuario Asignado</th>
+                                <th>Titulo</th>
                                 <th>Descripción</th>
                                 <th>Fecha</th>
                                 <th>Estado</th>
@@ -106,7 +97,6 @@
 
             </section>
 
-            </section>
             <section id="usersSection" class="admin-section hidden">
 
                 <div class="admin-toolbar">
@@ -137,100 +127,147 @@
                 </div>
 
             </section>
-        </div>
 
-        <div id="modalNewGlobalTask" class="modal-overlay hidden">
-            <div class="card card--login modal-content">
-                <h2 class="card__title">Asignar Nueva Tarea</h2>
-                <p class="card__subtitle">Crea una tarea para cualquier usuario</p>
+            <!-- FORMULARIO DE REGISTRO DE TAREAS -->
+            <!-- <div id="modalNewGlobalTask" class="modal-overlay hidden">
+                <div class="card card--login modal-content">
+                    <h2 class="card__title">Asignar Nueva Tarea</h2>
+                    <p class="card__subtitle">Crea una tarea para cualquier usuario</p>
 
-                <form id="formNewGlobalTask" style="text-align: left;">
-                    <div class="form__group">
-                        <label for="globalTaskUser"
-                            style="display: block; margin-bottom: 5px; color: var(--color-gray-700); font-weight: bold;">Asignar
-                            a:</label>
-                        <select id="globalTaskUser" class="form__input" required>
-                            <option value="">Selecciona un usuario...</option>
-                        </select>
+                    <form id="formNewGlobalTask" style="text-align: left;">
+                        <div class="form__group">
+                            <label for="globalTaskUser"
+                                style="display: block; margin-bottom: 5px; color: var(--color-gray-700); font-weight: bold;">Asignar
+                                a:</label>
+                            <select id="globalTaskUser" class="form__input" required>
+                                <option value="">Selecciona un usuario...</option>
+                            </select>
+                        </div>
+
+                        <div class="form__group">
+                            <label for="globalTaskDesc"
+                                style="display: block; margin-bottom: 5px; color: var(--color-gray-700); font-weight: bold;">Descripción:</label>
+                            <textarea id="globalTaskDesc" class="form__input" rows="3"
+                                placeholder="Escribe la tarea aquí..." required></textarea>
+                        </div>
+
+                        <div style="display: flex; gap: 10px; margin-top: 20px;">
+                            <button type="button" id="btnCancelGlobalTask" class="btn"
+                                style="flex: 1; background-color: var(--color-gray-200); color: var(--color-text-primary);">Cancelar</button>
+                            <button type="submit" class="btn btn--primary" style="flex: 1;">Asignar Tarea</button>
+                        </div>
+                    </form>
+                </div>
+            </div> -->
+
+            <!-- FORMULARIO DE REGISTRO DE TAREAS -->
+            <div id="task-section" class="modal-overlay hidden">
+                <div class="card modal-content">
+
+                    <div class="card">
+                        <h2 class="card__title">Registrar Nueva Tarea</h2>
+
+                        <form id="formNewGlobalTask" class="form" novalidate>
+                            <!-- Título de la tarea -->
+                            <div class="form__group">
+                                <label for="taskTitle" class="form__label">Título de la tarea</label>
+                                <input type="text" id="taskTitleArea" class="form__input"
+                                    placeholder="Ingresa el titulo..." aria-required="true">
+                                <span class="form__error hidden" id="taskTitleError"></span>
+                            </div>
+
+                            <!-- Descripción de la tarea -->
+                            <div class="form__group">
+                                <label for="taskDescription" class="form__label">Descripción</label>
+                                <textarea id="taskDescriptionArea" class="form__input form__textarea"
+                                    placeholder="Describe la tarea en detalle..." rows="4"
+                                    aria-required="true"></textarea>
+                                <span class="form__error hidden" id="taskDescriptionError"></span>
+                            </div>
+
+                            <!-- Estado de la tarea -->
+                            <div class="form__group">
+                                <label for="taskStatus" class="form__label">Estado</label>
+                                <select id="taskStatusArea" class="form__input" aria-required="true">
+                                    <option value="">Selecciona un estado</option>
+                                    <option value="pendiente">Pendiente</option>
+                                    <option value="en-progreso">En progreso</option>
+                                    <option value="completada">Completada</option>
+                                </select>
+                                <span class="form__error hidden" id="taskStatusError"></span>
+                            </div>
+
+                            <!-- Botón de envío -->
+                            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                                <button type="button" id="btnCancelGlobalTask" class="btn"
+                                    style="flex: 1; background-color: var(--color-gray-200); color: var(--color-text-primary);">Cancelar</button>
+                                <button type="submit" class="btn btn--primary" style="flex: 1;">Asignar Tarea</button>
+                            </div>
+                        </form>
                     </div>
-
-                    <div class="form__group">
-                        <label for="globalTaskDesc"
-                            style="display: block; margin-bottom: 5px; color: var(--color-gray-700); font-weight: bold;">Descripción:</label>
-                        <textarea id="globalTaskDesc" class="form__input" rows="3"
-                            placeholder="Escribe la tarea aquí..." required></textarea>
-                    </div>
-
-                    <div style="display: flex; gap: 10px; margin-top: 20px;">
-                        <button type="button" id="btnCancelGlobalTask" class="btn"
-                            style="flex: 1; background-color: var(--color-gray-200); color: var(--color-text-primary);">Cancelar</button>
-                        <button type="submit" class="btn btn--primary" style="flex: 1;">Asignar Tarea</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <div id="notification-container" class="notification-container"></div>
-
-        <div id="modalNewGlobalTask" class="modal-overlay hidden">
-        </div>
-
-        <div id="modalConfirm" class="modal-overlay hidden">
-            <div class="card card--login modal-content" style="max-width: 400px; text-align: center;">
-                <div id="confirmIcon" style="font-size: 3rem; margin-bottom: 10px;">⚠️</div>
-                <h2 id="confirmTitle" class="card__title">¿Estás seguro?</h2>
-                <p id="confirmMessage" class="card__subtitle">Esta acción no se puede deshacer.</p>
-
-                <div style="display: flex; gap: 10px; margin-top: 20px;">
-                    <button id="btnCancelConfirm" class="btn"
-                        style="flex: 1; background-color: var(--color-gray-200); color: var(--color-text-primary);">No,
-                        cancelar</button>
-                    <button id="btnAcceptConfirm" class="btn btn--danger" style="flex: 1;">Sí, continuar</button>
                 </div>
             </div>
-        </div>
-        <div id="modalUserForm" class="modal-overlay hidden">
-            <div class="card card--login modal-content">
-                <h2 id="userModalTitle" class="card__title">Nuevo Usuario</h2>
-                <p class="card__subtitle">Completa la información del perfil</p>
 
-                <form id="formUser" style="text-align: left;">
-                    <input type="hidden" id="editUserId">
-                    <div class="form__group">
-                        <label for="userName" style="display: block; margin-bottom: 5px; font-weight: bold;">Nombre
-                            Completo:</label>
-                        <input type="text" id="userName" class="form__input" required>
-                    </div>
-
-                    <div class="form__group">
-                        <label for="userEmail" style="display: block; margin-bottom: 5px; font-weight: bold;">Correo
-                            Electrónico:</label>
-                        <input type="email" id="userEmail" class="form__input" required>
-                    </div>
-
-                    <div class="form__group">
-                        <label for="userDoc" style="display: block; margin-bottom: 5px; font-weight: bold;">Documento
-                            (ID
-                            Login):</label>
-                        <input type="text" id="userDoc" class="form__input" required>
-                    </div>
-
-                    <div class="form__group">
-                        <label for="userRole" style="display: block; margin-bottom: 5px; font-weight: bold;">Rol del
-                            Sistema:</label>
-                        <select id="userRole" class="form__input" required>
-                            <option value="user">Usuario Estándar</option>
-                            <option value="admin">Administrador</option>
-                        </select>
-                    </div>
+            <!-- CARD PARA CONFIRMAR UNA ACCION -->
+            <div id="modalConfirm" class="modal-overlay hidden">
+                <div class="card card--login modal-content" style="max-width: 400px; text-align: center;">
+                    <div id="confirmIcon" style="font-size: 3rem; margin-bottom: 10px;">⚠️</div>
+                    <h2 id="confirmTitle" class="card__title">¿Estás seguro?</h2>
+                    <p id="confirmMessage" class="card__subtitle">Esta acción no se puede deshacer.</p>
 
                     <div style="display: flex; gap: 10px; margin-top: 20px;">
-                        <button type="button" id="btnCancelUser" class="btn"
-                            style="flex: 1; background-color: var(--color-gray-200); color: var(--color-text-primary);">Cancelar</button>
-                        <button type="submit" class="btn btn--primary" style="flex: 1;">Guardar Usuario</button>
+                        <button id="btnCancelConfirm" class="btn"
+                            style="flex: 1; background-color: var(--color-gray-200); color: var(--color-text-primary);">No,
+                            cancelar</button>
+                        <button id="btnAcceptConfirm" class="btn btn--danger" style="flex: 1;">Sí, continuar</button>
                     </div>
-                </form>
+                </div>
             </div>
+            <div id="modalUserForm" class="modal-overlay hidden">
+                <div class="card card--login modal-content">
+                    <h2 id="userModalTitle" class="card__title">Nuevo Usuario</h2>
+                    <p class="card__subtitle">Completa la información del perfil</p>
+
+                    <form id="formUser" style="text-align: left;">
+                        <input type="hidden" id="editUserId">
+                        <div class="form__group">
+                            <label for="userName" style="display: block; margin-bottom: 5px; font-weight: bold;">Nombre
+                                Completo:</label>
+                            <input type="text" id="userName" class="form__input" required>
+                        </div>
+
+                        <div class="form__group">
+                            <label for="userEmail" style="display: block; margin-bottom: 5px; font-weight: bold;">Correo
+                                Electrónico:</label>
+                            <input type="email" id="userEmail" class="form__input" required>
+                        </div>
+
+                        <div class="form__group">
+                            <label for="userDoc"
+                                style="display: block; margin-bottom: 5px; font-weight: bold;">Documento
+                                (ID
+                                Login):</label>
+                            <input type="text" id="userDoc" class="form__input" required>
+                        </div>
+
+                        <div class="form__group">
+                            <label for="userRole" style="display: block; margin-bottom: 5px; font-weight: bold;">Rol del
+                                Sistema:</label>
+                            <select id="userRole" class="form__input" required>
+                                <option value="user">Usuario Estándar</option>
+                                <option value="admin">Administrador</option>
+                            </select>
+                        </div>
+
+                        <div style="display: flex; gap: 10px; margin-top: 20px;">
+                            <button type="button" id="btnCancelUser" class="btn"
+                                style="flex: 1; background-color: var(--color-gray-200); color: var(--color-text-primary);">Cancelar</button>
+                            <button type="submit" class="btn btn--primary" style="flex: 1;">Guardar Usuario</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
         </div>
 
 
@@ -241,8 +278,7 @@
     </div>
 
 
-
-
+    <!-- CONTENEDOR DE NOTIFICACIONES ENTRANTES -->
     <div id="notification-container" class="notification-container"></div>
 
     <script src="/src/admin.js" type="module"></script>
