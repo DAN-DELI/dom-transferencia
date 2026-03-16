@@ -1,6 +1,8 @@
 import { fetchTasks, deleteTaskApi, updateTaskApi, createTask } from "./api/tasksApi.js";
 import { fetchUsers } from "./api/usersApi.js";
+import { showNotification } from "./ui/notificationsUI.js";
 import { getCurrentTimestamp } from "./utils/helpers.js";
+
 
 // ===============================================================
 // 1. SELECTORES DEL DOM
@@ -11,6 +13,48 @@ const tasksSection = document.getElementById("tasksSection");
 const usersSection = document.getElementById("usersSection");
 const btnAdminLogout = document.getElementById("btnAdminLogout");
 const adminTasksTableBody = document.getElementById("adminTasksTableBody");
+
+const container = document.getElementById("messagesContainer");
+const nameDisplay = document.getElementById("userNameDisplay");
+const emailDisplay = document.getElementById("userEmailDisplay");
+const userRolDisplay = document.getElementById("userRolDisplay");
+
+
+let currentUser = null;
+
+// ===============================================================
+// INICIALIZACION DEL DOCUMENTO
+// ===============================================================
+document.addEventListener("DOMContentLoaded", async () => {
+    try {
+        currentUser = null;
+
+        loadAdminTasks();
+
+        // Obtener el texto del localStorage
+        const sessionData = localStorage.getItem('usuarioActivo');
+
+        // Convertir el texto a Objeto
+        if (sessionData) {
+            currentUser = JSON.parse(sessionData);
+        } else {
+            // Si no hay nada, se redirecciona al login
+            window.location.href = 'login.html';
+            return;
+        }
+
+        showNotification(`¡Hola de nuevo, ${currentUser.name}!`, "success");
+
+        nameDisplay.textContent = currentUser.name;
+        emailDisplay.textContent = currentUser.email;
+        userRolDisplay.textContent = "Administrador";
+
+    } catch (error) {
+        showNotification("Usuario no encontrado en la base de datos.", "error");
+        console.log("Se ha presentado un error: " + error)
+    }
+});
+
 
 // ===============================================================
 // 2. LÓGICA DE PESTAÑAS Y NAVEGACIÓN
@@ -33,7 +77,7 @@ tabUsers.addEventListener("click", () => {
     tasksSection.classList.add("hidden");
 
     tabUsers.className = "btn btn--primary";
-    tabUsers.style.backgroundColor = ""; 
+    tabUsers.style.backgroundColor = "";
     tabUsers.style.color = "";
 
     tabTasks.className = "btn";
@@ -43,7 +87,14 @@ tabUsers.addEventListener("click", () => {
 
 btnAdminLogout.addEventListener("click", () => {
     if (confirm("¿Estás seguro de que quieres salir del panel de administrador?")) {
-        window.location.href = "index.html";
+        localStorage.removeItem('usuarioActivo')
+        // Notificar (Se verá brevemente antes de cambiar de página)
+        showNotification("Sesión cerrada correctamente.", "info");
+
+        // Redireccionar al login
+        setTimeout(() => {
+            window.location.href = 'index.html';
+        }, 500);
     }
 });
 
@@ -104,14 +155,14 @@ function renderAdminTasksTable(tasksToRender) {
 async function loadAdminTasks() {
     try {
         adminTasksTableBody.innerHTML = `<tr><td colspan="6" class="table-empty">Cargando datos del sistema...</td></tr>`;
-        
+
         // Traer datos de la base de datos
         allTasks = await fetchTasks();
         allUsers = await fetchUsers();
-        
+
         // Dibujar ambas tablas
         renderAdminTasksTable(allTasks);
-        renderAdminUsersTable(allUsers); 
+        renderAdminUsersTable(allUsers);
 
     } catch (error) {
         console.error("Error cargando datos del admin:", error);
@@ -133,10 +184,10 @@ function applyAdminFilters() {
         // 2. Validar si el texto buscado coincide con la descripción, ID de la tarea o el nombre del usuario
         const taskUser = allUsers.find(u => String(u.id) === String(task.userId));
         const userName = taskUser ? taskUser.name.toLowerCase() : "";
-        
-        const matchSearch = task.descripcion.toLowerCase().includes(searchTerm) || 
-                            userName.includes(searchTerm) || 
-                            String(task.id).includes(searchTerm);
+
+        const matchSearch = task.descripcion.toLowerCase().includes(searchTerm) ||
+            userName.includes(searchTerm) ||
+            String(task.id).includes(searchTerm);
 
         // Retornar verdadero solo si cumple ambas condiciones
         return matchStatus && matchSearch;
@@ -154,7 +205,7 @@ adminFilterStatus.addEventListener("change", applyAdminFilters); // Se activa al
 // 4. LÓGICA DE ACCIONES EN LA TABLA (ELIMINAR Y EDITAR)
 // ===============================================================
 adminTasksTableBody.addEventListener("click", async (e) => {
-    
+
     // -----------------------------------------
     // ACCIÓN: ELIMINAR TAREA
     // -----------------------------------------
@@ -180,7 +231,7 @@ adminTasksTableBody.addEventListener("click", async (e) => {
     const btnEdit = e.target.closest(".btn-edit-task");
     if (btnEdit) {
         const taskId = btnEdit.getAttribute("data-id");
-        
+
         // 1. Buscamos la tarea actual en nuestra lista para saber qué decía antes
         const taskToEdit = allTasks.find(task => String(task.id) === String(taskId));
         if (!taskToEdit) return;
@@ -193,24 +244,19 @@ adminTasksTableBody.addEventListener("click", async (e) => {
             try {
                 // Actualizamos en la base de datos (PATCH)
                 await updateTaskApi(taskId, { descripcion: newDescription.trim() });
-                
+
                 // Actualizamos nuestra lista temporal
                 taskToEdit.descripcion = newDescription.trim();
-                
+
                 // Redibujamos la tabla
                 applyAdminFilters();
-                
+
             } catch (error) {
                 console.error("Error al editar:", error);
                 alert("Hubo un error al intentar actualizar la tarea.");
             }
         }
     }
-});
-
-// Iniciar la carga al abrir la página
-document.addEventListener("DOMContentLoaded", () => {
-    loadAdminTasks();
 });
 
 // ===============================================================
@@ -259,17 +305,17 @@ formNewGlobalTask.addEventListener("submit", async (e) => {
     try {
         // 1. Enviar a la base de datos
         const createdTask = await createTask(newTask);
-        
+
         // 2. Agregar a nuestra lista en memoria
         allTasks.unshift(createdTask); // unshift lo pone al principio de la lista
-        
+
         // 3. Redibujar la tabla
         applyAdminFilters();
-        
+
         // 4. Cerrar el modal y limpiar
         modalNewGlobalTask.classList.add("hidden");
         formNewGlobalTask.reset();
-        
+
         // (Opcional) Mostrar notificación nativa si la tienes importada
         alert("Tarea asignada exitosamente");
 
@@ -300,9 +346,9 @@ function renderAdminUsersTable(usersToRender) {
         // Definir un color según el rol (Azul para admin, Verde para usuario)
         const roleColor = user.role === "admin" ? "var(--color-primary)" : "var(--color-success)";
         const roleText = user.role === "admin" ? "Administrador" : "Usuario";
-        
+
         // Usamos user.document porque en tu db.json ese es el ID real de login
-        const documentId = user.document || user.id; 
+        const documentId = user.document || user.id;
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -329,14 +375,14 @@ function renderAdminUsersTable(usersToRender) {
  * Filtra la tabla de usuarios en tiempo real
  */
 function applyUserFilters() {
-    if (!allUsers) allUsers = []; 
+    if (!allUsers) allUsers = [];
     const searchTerm = adminSearchUser.value.toLowerCase();
 
     const filteredUsers = allUsers.filter(user => {
         const docId = String(user.document || user.id).toLowerCase();
-        return user.name.toLowerCase().includes(searchTerm) || 
-                docId.includes(searchTerm) ||
-                user.email.toLowerCase().includes(searchTerm);
+        return user.name.toLowerCase().includes(searchTerm) ||
+            docId.includes(searchTerm) ||
+            user.email.toLowerCase().includes(searchTerm);
     });
 
     renderAdminUsersTable(filteredUsers);
@@ -377,38 +423,38 @@ btnCancelConfirm.addEventListener("click", () => {
 // Evento para el botón de Aceptar (ejecuta la acción guardada)
 btnAcceptConfirm.addEventListener("click", async () => {
     if (confirmAction) {
-        await confirmAction(); 
+        await confirmAction();
     }
     modalConfirm.classList.add("hidden");
 });
 
 // ESCUCHAR CLICS EN LA TABLA DE USUARIOS
 adminUsersTableBody.addEventListener("click", (e) => {
-    
+
     // CASO: ELIMINAR USUARIO
     const btnDelete = e.target.closest(".btn-delete-user");
     if (btnDelete) {
         const userId = btnDelete.getAttribute("data-id");
-        
+
         // Buscamos el nombre para que el mensaje sea personalizado
         const user = allUsers.find(u => String(u.id) === String(userId));
         if (!user) return;
 
         // Abrimos el modal personalizado pasándole la lógica de borrado
         showCustomConfirm(
-            "Eliminar Usuario", 
+            "Eliminar Usuario",
             `¿Estás seguro de que deseas eliminar a ${user.name}? Esta acción borrará todos sus datos del sistema.`,
             async () => {
                 try {
                     // 1. Llamada a la API
                     await deleteUserApi(userId);
-                    
+
                     // 2. Actualizar lista local
                     allUsers = allUsers.filter(u => String(u.id) !== String(userId));
-                    
+
                     // 3. Redibujar tabla
                     applyUserFilters();
-                    
+
                     alert("Usuario eliminado con éxito");
                 } catch (error) {
                     console.error("Error al eliminar usuario:", error);
@@ -449,14 +495,14 @@ adminUsersTableBody.addEventListener("click", (e) => {
     if (btnEdit) {
         const userId = btnEdit.getAttribute("data-id");
         const user = allUsers.find(u => String(u.id) === String(userId));
-        
+
         if (user) {
             editUserId.value = user.id;
             userNameInput.value = user.name;
             userEmailInput.value = user.email;
             userDocInput.value = user.document || user.id;
             userRoleInput.value = user.role || "user";
-            
+
             userModalTitle.textContent = "Editar Usuario";
             modalUserForm.classList.remove("hidden");
         }
@@ -501,17 +547,17 @@ formUser.addEventListener("submit", async (e) => {
         // LÓGICA DE CREACIÓN (Directa)
         try {
             const newUser = await createUserApi(userData);
-            
+
             // 1. Agregar a nuestra lista local
             allUsers.push(newUser);
-            
+
             // 2. Redibujar la tabla de usuarios
             applyUserFilters();
-            
+
             // 3. Cerrar y limpiar
             modalUserForm.classList.add("hidden");
             formUser.reset();
-            
+
             alert(`¡Usuario ${newUser.name} creado con éxito! Su contraseña inicial es su documento.`);
         } catch (error) {
             console.error("Error al crear:", error);
