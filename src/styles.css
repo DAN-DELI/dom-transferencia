@@ -143,7 +143,7 @@ body {
    ============================================ */
 
 .container {
-    max-width: 800px;
+    max-width: 850px;
     margin: 0 auto;
 }
 
@@ -180,7 +180,7 @@ body {
 .card {
     background: var(--color-surface);
     border-radius: var(--radius-lg);
-    padding: var(--spacing-xl);
+    padding: var(--spacing-2xl) var(--spacing-xl);
     box-shadow: var(--shadow-lg);
     border: 1px solid var(--color-gray-100);
 }
@@ -567,7 +567,7 @@ body {
     }
 
     .header {
-        padding: var(--spacing-lg) var(--spacing-md);
+        padding: var(--spacing-2xl) var(--spacing-xl);
         margin-bottom: var(--spacing-xl);
     }
 
@@ -824,62 +824,7 @@ body {
     margin-bottom: var(--spacing-lg);
 }
 
-/* ============================================
-   MÓDULO DE LOGIN 
-   ============================================ */
-.login-wrapper {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    min-height: 100vh;
-    position: fixed;
-    top: 0;
-    left: 0;
-}
 
-.form__group--no-margin {
-    margin-bottom: 0px;
-}
-
-.card--login {
-    min-width: 496px;
-    width: 100%;
-    text-align: center;
-    padding: var(--spacing-3xl) var(--spacing-2xl) !important;
-}
-
-.login-title {
-    font-size: 2.5rem;
-    font-weight: bold;
-    color: var(--color-primary);
-    margin-bottom: var(--spacing-md);
-}
-
-.card__subtitle {
-    margin-bottom: var(--spacing-md);
-    color: var(--color-text-secondary);
-}
-
-.btn--full {
-    width: 100%;
-    margin-top: var(--spacing-lg);
-}
-
-/* ============================================
-   UTILIDADES Y RESPONSIVE
-   ============================================ */
-.validation-section--no-margin {
-    margin: 0;
-}
-
-@media (max-height: 500px) {
-    .login-wrapper {
-        align-items: flex-start;
-        padding-top: var(--spacing-xl);
-        overflow-y: auto;
-    }
-}
 
 /* ============================================
    BOTON DE CERRAR SECION
@@ -928,7 +873,8 @@ body {
 
 .table-container {
     width: 100%;
-    overflow-x: auto; /* Permite scroll horizontal si la pantalla es pequeña */
+    overflow-x: auto;
+    /* Permite scroll horizontal si la pantalla es pequeña */
     background-color: #ffffff;
     border-radius: 8px;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
@@ -975,21 +921,32 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.6); /* Fondo semitransparente oscuro */
+    background-color: rgba(0, 0, 0, 0.6);
+    /* Fondo semitransparente oscuro */
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1000; /* Asegura que esté por encima de todo */
+    z-index: 1000;
+    /* Asegura que esté por encima de todo */
 }
 
 .modal-content {
     min-width: 400px;
     max-width: 90%;
-    margin: 0; /* Resetea márgenes para centrar bien */
-    animation: fadeIn 0.3s ease-out; /* Una pequeña animación al aparecer */
+    margin: 0;
+    /* Resetea márgenes para centrar bien */
+    animation: fadeIn 0.3s ease-out;
+    /* Una pequeña animación al aparecer */
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-20px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
