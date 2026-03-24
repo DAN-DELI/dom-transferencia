@@ -60,43 +60,151 @@
                     Usuarios</button>
             </div>
 
+            <!-- AREA DE GESTION DE TAREAS -->
             <section id="tasksSection" class="admin-section">
 
-                <div class="admin-toolbar">
-                    <div class="admin-toolbar__filters">
-                        <input type="text" id="adminSearchTask" class="form__input"
-                            placeholder="Buscar por descripción o ID...">
-                        <select id="adminFilterStatus" class="form__input">
-                            <option value="all">Todos los estados</option>
-                            <option value="pendiente">Pendientes</option>
-                            <option value="completada">Completadas</option>
-                        </select>
-                    </div>
-                    <button id="btnNewGlobalTask" class="btn btn--primary">➕ Nueva Tarea Global</button>
-                </div>
 
-                <div class="table-container">
-                    <table class="admin-table">
-                        <thead>
-                            <tr>
-                                <th>Usuario Asignado</th>
-                                <th>Titulo</th>
-                                <th>Descripción</th>
-                                <th>Fecha</th>
-                                <th>Estado</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="adminTasksTableBody">
-                            <tr>
-                                <td colspan="6" class="table-empty">Cargando datos del sistema...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+
+
+                <!-- AREA DE FILTRO -->
+                <div class="messages-controls">
+
+
+                    <!-- AREA PARA EL FILTRO DE TAREAS -->
+                    <div id="messagesFilters" class="messages-filters message-card">
+                        <h2 class="filters-title">Filtra y ordena</h2>
+                        <!-- Filtro por estado (MULTIPLE) -->
+                        <div class="form__group">
+                            <span class="form__label form__input--font-size">Filtrar por estado</span>
+
+                            <div class="checkbox-group" id="filterStatusGroup">
+
+                                <label for="statusPendiente">
+                                    <input id="statusPendiente" type="checkbox" value="pendiente" class="filterStatus">
+                                    Pendiente
+                                </label>
+
+                                <label for="statusProgreso">
+                                    <input id="statusProgreso" type="checkbox" value="en-progreso" class="filterStatus">
+                                    En progreso
+                                </label>
+
+                                <label for="statusCompletada">
+                                    <input id="statusCompletada" type="checkbox" value="completada"
+                                        class="filterStatus">
+                                    Completada
+                                </label>
+
+                            </div>
+                        </div>
+
+                        <!-- ORDEN DE TAREAS -->
+                        <div class="form__group">
+                            <label for="sortTasks" class="form__label">Ordenar tareas</label>
+
+                            <select id="sortTasks" class="form__input">
+                                <option value="">Sin orden</option>
+
+                                <optgroup label="Por fecha">
+                                    <option value="fecha_desc">Más recientes primero</option>
+                                    <option value="fecha_asc">Más antiguas primero</option>
+                                </optgroup>
+
+                                <optgroup label="Por titulo">
+                                    <option value="nombre_asc">A → Z</option>
+                                    <option value="nombre_desc">Z → A</option>
+                                </optgroup>
+
+                                <optgroup label="Por estado">
+                                    <option value="estado_prioridad">Pendientes primero</option>
+                                    <option value="estado_inverso">Completadas primero</option>
+                                </optgroup>
+
+                            </select>
+                        </div>
+
+                        <!-- BUSQUEDA DE TAREAS POR USUARIO -->
+                        <!-- <div class="form__group">
+                            <label class="form__label">Buscar por usuario:</label>
+
+                            <div id="userSelectionContainer"
+                                style="max-height: 200px; overflow-y: auto; border: 1px solid var(--color-gray-200); padding: 10px; border-radius: 8px; background-color: #f9f9f9; border: 1px solid #ccc;">
+                                <label
+                                    style="display: flex; align-items: center; gap: 8px; font-weight: bold; border-bottom: 1px solid #ddd; padding-bottom: 8px; margin-bottom: 8px; cursor: pointer;">
+                                    <input type="checkbox" id="selectAllUsers">
+                                    <span>Seleccionar todos</span>
+                                </label>
+
+                                <div id="individualUsersList">
+                                    <p style="font-size: 0.9rem; color: #666; font-style: italic;">Cargando lista de
+                                        usuarios...</p>
+                                </div>
+                            </div>
+                            <span class="form__error hidden" id="userSelectionError"
+                                style="color: var(--color-danger); font-size: 0.8rem;">Debes seleccionar al menos un
+                                usuario</span>
+                        </div> -->
+
+                        <div class="btn btn-filters-actions">
+                            <button id="applyFiltersBtn" class="btn btn--primary">
+                                Aplicar filtros
+                            </button>
+                        </div>
+                    </div>
+                    <section id="messages-section" class="messages-section">
+                        <!-- numero de mensajes publicados -->
+                        <div class="messages-header">
+                            <h2 class="messages-header__title">Mensajes Publicados</h2>
+
+                            <div class="messages-header__actions">
+                                <button id="exportTasksBtn" class="btn btn--primary btn--sm">
+                                    Exportar tareas
+                                </button>
+                                <span class="messages-header__count" id="messageCount">0 mensajes</span>
+                            </div>
+                        </div>
+                    </section>
+
+
+
+
+                    <div class="admin-toolbar">
+                        <div class="admin-toolbar__filters">
+                            <input type="text" id="adminSearchTask" class="form__input"
+                                placeholder="Buscar por descripción o ID...">
+                            <select id="adminFilterStatus" class="form__input">
+                                <option value="all">Todos los estados</option>
+                                <option value="pendiente">Pendientes</option>
+                                <option value="completada">Completadas</option>
+                            </select>
+                        </div>
+                        <button id="btnNewGlobalTask" class="btn btn--primary">➕ Nueva Tarea Global</button>
+                    </div>
+
+                    <div class="table-container">
+                        <table class="admin-table text-center">
+                            <thead>
+                                <tr style="text-align: center;">
+                                    <th style="width: 145px;">Usuario Asignado</th>
+                                    <th>Titulo</th>
+                                    <th style=" width: 215px;">Descripción</th>
+                                    <th style=" width: 136px;">Fecha</th>
+                                    <th style=" width: 120px;">Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminTasksTableBody">
+                                <tr>
+                                    <td colspan="6" class="table-empty" style="text-align: center;">Cargando datos del
+                                        sistema...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
 
             </section>
 
+            <!-- ELIMINAR ESTE FILTRO Y CAMBIAR EL BOTON -->
             <section id="usersSection" class="admin-section hidden">
 
                 <div class="admin-toolbar">
@@ -108,12 +216,14 @@
                 </div>
 
                 <div class="table-container">
-                    <table class="admin-table">
+                    <table class="admin-table text-center">
                         <thead>
                             <tr>
                                 <th>Documento (ID)</th>
                                 <th>Nombre Completo</th>
                                 <th>Correo Electrónico</th>
+                                <!-- AGREGA COLUMNA DE CONTADOR DE TAREAS -->
+                                <!-- <th>Numero de tareas</th> -->
                                 <th>Rol</th>
                                 <th>Acciones</th>
                             </tr>
@@ -128,11 +238,12 @@
 
             </section>
 
+
             <!-- FORMULARIO DE REGISTRO DE TAREAS -->
             <div id="task-section" class="modal-overlay hidden">
                 <div class="card modal-content">
 
-                    <div class="card">
+                    <div class="card no-padding" style="border: none; box-shadow: none;">
                         <h2 class="card__title">Registrar Nueva Tarea</h2>
 
                         <form id="formNewGlobalTask" class="form" novalidate>
@@ -152,24 +263,28 @@
                                     aria-required="true"></textarea>
                                 <span class="form__error hidden" id="taskDescriptionError"></span>
                             </div>
-                            
+
                             <!-- Seleccion de usuarios para asignacion de tareas Tachobo-->
                             <div class="form__group">
                                 <label class="form__label">Asignar a:</label>
-    
-                            <div id="userSelectionContainer" style="max-height: 200px; overflow-y: auto; border: 1px solid var(--color-gray-200); padding: 10px; border-radius: 8px; background-color: #f9f9f9; border: 1px solid #ccc;">
-                                <label style="display: flex; align-items: center; gap: 8px; font-weight: bold; border-bottom: 1px solid #ddd; padding-bottom: 8px; margin-bottom: 8px; cursor: pointer;">
-                                    <input type="checkbox" id="selectAllUsers"> 
-                                    <span>Seleccionar todos</span>
-                                </label>
-                                
-                                <div id="individualUsersList">
-                                    <p style="font-size: 0.9rem; color: #666; font-style: italic;">Cargando lista de usuarios...</p>
+
+                                <div id="userSelectionContainer"
+                                    style="max-height: 200px; overflow-y: auto; border: 1px solid var(--color-gray-200); padding: 10px; border-radius: 8px; background-color: #f9f9f9; border: 1px solid #ccc;">
+                                    <label
+                                        style="display: flex; align-items: center; gap: 8px; font-weight: bold; border-bottom: 1px solid #ddd; padding-bottom: 8px; margin-bottom: 8px; cursor: pointer;">
+                                        <input type="checkbox" id="selectAllUsers">
+                                        <span>Seleccionar todos</span>
+                                    </label>
+
+                                    <div id="individualUsersList">
+                                        <p style="font-size: 0.9rem; color: #666; font-style: italic;">Cargando lista de
+                                            usuarios...</p>
+                                    </div>
                                 </div>
+                                <span class="form__error hidden" id="userSelectionError">Debes seleccionar al menos un
+                                    usuario</span>
                             </div>
-                                <span class="form__error hidden" id="userSelectionError" style="color: var(--color-danger); font-size: 0.8rem;">Debes seleccionar al menos un usuario</span>
-                            </div>
-                            
+
                             <!-- Estado de la tarea -->
                             <div class="form__group">
                                 <label for="taskStatus" class="form__label">Estado</label>
@@ -195,7 +310,8 @@
 
             <!-- CARD PARA CONFIRMAR UNA ACCION -->
             <div id="modalConfirm" class="modal-overlay hidden">
-                <div class="card card--login modal-content" style="max-width: 400px; text-align: center;">
+                <div class="card card--login modal-content"
+                    style="max-width: 450px; min-width: 450px; padding: 30px; text-align: center;">
                     <div id="confirmIcon" style="font-size: 3rem; margin-bottom: 10px;">⚠️</div>
                     <h2 id="confirmTitle" class="card__title">¿Estás seguro?</h2>
                     <p id="confirmMessage" class="card__subtitle">Esta acción no se puede deshacer.</p>
