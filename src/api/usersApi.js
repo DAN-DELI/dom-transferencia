@@ -87,7 +87,12 @@ export async function updateUserApi(id, userData) {
     const res = await fetch(`http://localhost:3000/users/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(userData)
+        body: JSON.stringify({
+            name: userData.name,
+            email: userData.email,
+            document: userData.document,
+            rol: userData.rol
+        })
     });
     if (!res.ok) throw new Error("Error al actualizar el usuario");
     return res.json();
@@ -102,16 +107,10 @@ export async function updateUserApi(id, userData) {
  * @param {Object} userData 
  */
 export async function createUserApi(userData) {
-    // Le asignamos una contraseña inicial igual a su documento
-    const newUser = {
-        ...userData,
-        password: userData.document
-    };
-
     const res = await fetch(`http://localhost:3000/users`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newUser)
+        body: JSON.stringify(userData)
     });
     if (!res.ok) throw new Error("Error al crear el usuario");
     return res.json();
