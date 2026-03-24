@@ -2,7 +2,7 @@ import { fetchTasks, deleteTaskApi, updateTaskApi, createTask } from "./api/task
 import { fetchUsers, deleteUserApi, updateUserApi, createUserApi } from "./api/usersApi.js";
 import { validateForm } from "./services/tasksService.js";
 import { showNotification } from "./ui/notificationsUI.js";
-import { hideEmpty } from "./ui/uiState.js";
+import { hideEmpty, showEmpty } from "./ui/uiState.js";
 import { formatFecha, getCurrentTimestamp } from "./utils/helpers.js";
 
 
@@ -29,6 +29,8 @@ const taskStatusArea = document.getElementById("taskStatusArea");
 const taskTitleError = document.getElementById("taskTitleError")
 const taskDescriptionError = document.getElementById("taskDescriptionError")
 const taskStatusError = document.getElementById("taskStatusError")
+const userSelectionError = document.getElementById("userSelectionError");
+const modalContent = document.querySelector('.modal-content');
 
 let currentUser = null;
 
@@ -49,7 +51,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             currentUser = JSON.parse(sessionData);
         } else {
             // Si no hay nada, se redirecciona al login
-            window.location.href = 'login.html';
+            window.location.href = 'index.html';
             return;
         }
 
@@ -204,9 +206,9 @@ function applyAdminFilters() {
         const title = (task.title || "").toLowerCase();
 
         const matchSearch = desc.includes(searchTerm) ||
-                            title.includes(searchTerm) ||
-                            userName.includes(searchTerm) ||
-                            String(task.id).includes(searchTerm);
+            title.includes(searchTerm) ||
+            userName.includes(searchTerm) ||
+            String(task.id).includes(searchTerm);
 
         return matchStatus && matchSearch;
     });
@@ -228,19 +230,41 @@ adminTasksTableBody.addEventListener("click", async (e) => {
     // -----------------------------------------
     const btnDelete = e.target.closest(".btn-delete-task");
     if (btnDelete) {
+        // bloquear el scroll de fondo
+        body.classList.add("no-scroll");
+
         const taskId = btnDelete.getAttribute("data-id");
-        if (confirm(`¿Estás seguro de que deseas eliminar permanentemente la tarea #${taskId}?`)) {
-            try {
-                await deleteTaskApi(taskId);
-                allTasks = allTasks.filter(task => String(task.id) !== String(taskId));
-                applyAdminFilters();
-            } catch (error) {
-                console.error("Error al eliminar:", error);
-                alert("Hubo un error al intentar eliminar la tarea.");
+
+        // Buscamos a la tarea
+        const actuallyTask = allTasks.find(j => String(j.id) === String(taskId))
+
+        // Buscamos el nombre para que el mensaje sea personalizado
+        const actuallyUser = allUsers.find(u => String(u.id) === String(actuallyTask.userId));
+        if (!actuallyUser) return;
+
+        showCustomConfirm(
+            "Eliminar Tarea",
+            `¿Estás seguro de que deseas eliminar la tarea de ${actuallyUser.name}? Esta acción borrará todos sus datos del sistema.`,
+            async () => {
+                try {
+                    // 1. Llamada a la API
+                    await deleteTaskApi(actuallyTask.id);
+
+                    // 2. Actualizar lista local
+                    allTasks = allTasks.filter(m => String(m.id) !== String(actuallyTask.id));
+
+                    // 3. Redibujar tabla
+                    applyAdminFilters();
+
+                    body.classList.remove("no-scroll");
+                    showNotification("Tarea borrada con éxito", "success");
+                } catch (error) {
+                    console.error("Error al eliminar la tarea:", error);
+                    alert("No se pudo eliminar al usuario. Intenta de nuevo.");
+                }
             }
-        }
-        return; // Detenemos la ejecución aquí para que no haga nada más
-    }
+        )
+    };
 
     // -----------------------------------------
     // ACCIÓN: EDITAR TAREA
@@ -257,6 +281,7 @@ adminTasksTableBody.addEventListener("click", async (e) => {
 
         const currentDesc = taskToEdit.description || taskToEdit.descripcion || "";
 
+        // AQUI SOLITITAR TODO LO SUFICIENTE PARA EDITAR LA TAREA
         // 2. Le pedimos al administrador el nuevo texto (mostrando el texto actual por defecto)
         const newDescription = prompt("Edita la descripción de la tarea:", currentDesc);
 
@@ -264,12 +289,12 @@ adminTasksTableBody.addEventListener("click", async (e) => {
         if (newDescription !== null && newDescription.trim() !== "") {
             try {
                 const updatedText = newDescription.trim();
-                
+
                 // 4. Actualizamos en la API 
                 // Enviamos AMBAS llaves por seguridad si tu DB no es consistente
-                await updateTaskApi(taskId, { 
+                await updateTaskApi(taskId, {
                     description: updatedText,
-                    descripcion: updatedText 
+                    descripcion: updatedText
                 });
 
                 // 5. Actualizamos nuestra lista local (allTasks)
@@ -282,10 +307,11 @@ adminTasksTableBody.addEventListener("click", async (e) => {
 
             } catch (error) {
                 console.error("Error al editar:", error);
-                showNotification("Hubo un error al intentar actualizar la tarea.", "error");s
+                showNotification("Hubo un error al intentar actualizar la tarea.", "error"); s
             }
         }
     }
+
 });
 
 // ===============================================================
@@ -303,16 +329,21 @@ const taskSection = document.getElementById("task-section")
 // 5.1. Abrir Modal y llenar la lista de usuarios
 btnNewGlobalTask.addEventListener("click", () => {
     // 1. Carga los usuarios en los checkboxes
-    renderAssigneeCheckboxes(); 
+    renderAssigneeCheckboxes();
 
     // 2. Muestra el modal
     taskSection.classList.remove("hidden");
     body.classList.add("no-scroll");
+
+    setTimeout(() => {
+        modalContent.scrollTop = 0;
+    }, 0);
 });
 
 // 5.2. Cerrar Modal
 btnCancelGlobalTask.addEventListener("click", () => {
 
+    hideEmpty(userSelectionError)
     taskSection.classList.add("hidden");
     body.classList.remove("no-scroll");
 
@@ -327,20 +358,30 @@ btnCancelGlobalTask.addEventListener("click", () => {
 formNewGlobalTask.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    // 1. Validar campos de texto
-    if (!validateForm(taskTitleArea, taskDescriptionArea, taskStatusArea, taskTitleError, taskDescriptionError, taskStatusError)) {
-        return;
-    }
+    // Variable para validar que todos los campos no esten vacios
+    var canMake = true;
 
-    // 2. Obtener IDs de usuarios seleccionados
+    // Obtener IDs de usuarios seleccionados
     const selectedIds = Array.from(document.querySelectorAll('.user-assign-check:checked')).map(cb => cb.value);
 
     if (selectedIds.length === 0) {
-        alert("Por favor, selecciona al menos un usuario.");
+        showEmpty(userSelectionError)
+        canMake = false;
+    } else {
+        hideEmpty(userSelectionError)
+    }
+
+    // Validar campos de texto
+    if (!validateForm(taskTitleArea, taskDescriptionArea, taskStatusArea, taskTitleError, taskDescriptionError, taskStatusError)) {
+        canMake = false;
+    }
+
+    // Si algun campo esta vacio, bloquea la accion de crear
+    if (!canMake) {
         return;
     }
 
-    // 3. Datos base de la tarea
+    // Datos base de la tarea
     const baseTask = {
         title: taskTitleArea.value.trim(),
         description: taskDescriptionArea.value.trim(),
@@ -352,7 +393,7 @@ formNewGlobalTask.addEventListener("submit", async (e) => {
     try {
         // 4. Crear una tarea para cada usuario seleccionado
         const creationPromises = selectedIds.map(userId => {
-            return createTask({ ...baseTask, userId }); 
+            return createTask({ ...baseTask, userId });
         });
 
         // Esperamos a que todas se guarden en la API
@@ -363,12 +404,15 @@ formNewGlobalTask.addEventListener("submit", async (e) => {
 
         // 6. Limpiar, cerrar y notificar
         applyAdminFilters();
-        showNotification("Tareas asignadas exitosamente", "success");
         taskSection.classList.add("hidden");
         body.classList.remove("no-scroll");
         formNewGlobalTask.reset();
-        
-        showNotification("Tareas asignadas exitosamente", "success");
+
+        if (selectedIds == 1) {
+            showNotification("Tarea asignada exitosamente", "success");
+        } else {
+            showNotification("Tareas asignadas exitosamente", "success");
+        }
 
     } catch (error) {
         console.error("Error al crear tareas múltiples:", error);
@@ -469,6 +513,7 @@ function showCustomConfirm(title, message, onAccept) {
 // Evento para el botón de Cancelar
 btnCancelConfirm.addEventListener("click", () => {
     modalConfirm.classList.add("hidden");
+    body.classList.remove("no-scroll");
     confirmAction = null;
 });
 
@@ -486,6 +531,7 @@ adminUsersTableBody.addEventListener("click", (e) => {
     // CASO: ELIMINAR USUARIO
     const btnDelete = e.target.closest(".btn-delete-user");
     if (btnDelete) {
+        body.classList.add("no-scroll");
         const userId = btnDelete.getAttribute("data-id");
 
         // Buscamos el nombre para que el mensaje sea personalizado
@@ -539,12 +585,14 @@ btnNewUser.addEventListener("click", () => {
     editUserId.value = ""; // Importante: vacío para saber que es creación
     userModalTitle.textContent = "Nuevo Usuario";
     modalUserForm.classList.remove("hidden");
+    body.classList.add("no-scroll");
 });
 
 // 8.2. Abrir para EDITAR usuario (Desde la tabla)
 adminUsersTableBody.addEventListener("click", (e) => {
     const btnEdit = e.target.closest(".btn-edit-user");
     if (btnEdit) {
+        body.classList.add("no-scroll");
         const userId = btnEdit.getAttribute("data-id");
         const user = allUsers.find(u => String(u.id) === String(userId));
 
@@ -562,7 +610,10 @@ adminUsersTableBody.addEventListener("click", (e) => {
 });
 
 // Cerrar modal
-btnCancelUser.addEventListener("click", () => modalUserForm.classList.add("hidden"));
+btnCancelUser.addEventListener("click", () => {
+    modalUserForm.classList.add("hidden")
+    body.classList.remove("no-scroll");
+});
 
 // 8.3. GUARDAR (Crear o Actualizar)
 formUser.addEventListener("submit", async (e) => {
@@ -571,7 +622,7 @@ formUser.addEventListener("submit", async (e) => {
     const userData = {
         name: userNameInput.value.trim(),
         email: userEmailInput.value.trim(),
-        document: userDocInput.value.trim(),
+        document: Number(userDocInput.value.trim()),
         role: userRoleInput.value
     };
 
@@ -580,10 +631,11 @@ formUser.addEventListener("submit", async (e) => {
 
     try {
         if (isEditing) {
+
             // --- LÓGICA DE EDICIÓN ---
             if (confirm(`¿Seguro que quieres actualizar los datos de ${userData.name}?`)) {
                 await updateUserApi(userId, userData);
-                
+
                 // Actualizar en el array local (allUsers)
                 const index = allUsers.findIndex(u => String(u.id) === String(userId));
                 if (index !== -1) {
@@ -591,7 +643,9 @@ formUser.addEventListener("submit", async (e) => {
                 }
 
                 showNotification("Usuario actualizado correctamente", "success");
+                body.classList.remove("no-scroll")
             } else {
+                body.classList.remove("no-scroll")
                 return; // Si cancela el confirm, no hace nada
             }
         } else {
@@ -599,6 +653,7 @@ formUser.addEventListener("submit", async (e) => {
             const newUser = await createUserApi(userData);
             allUsers.push(newUser);
             showNotification("Usuario creado correctamente", "success");
+            body.classList.remove("no-scroll")
         }
 
         // Acciones comunes después de Crear o Editar
@@ -618,7 +673,7 @@ async function renderAssigneeCheckboxes() {
         const response = await fetch('http://localhost:3000/users');
         const users = await response.json();
         const listContainer = document.getElementById('individualUsersList');
-        
+
         const clientUsers = users.filter(u => u.role !== 'admin');
 
         listContainer.innerHTML = clientUsers.map(user => `
