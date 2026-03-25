@@ -222,8 +222,7 @@
                                 <th>Documento (ID)</th>
                                 <th>Nombre Completo</th>
                                 <th>Correo Electrónico</th>
-                                <!-- AGREGA COLUMNA DE CONTADOR DE TAREAS -->
-                                <!-- <th>Numero de tareas</th> -->
+                                <th>Tareas Asignadas</th>
                                 <th>Rol</th>
                                 <th>Acciones</th>
                             </tr>
@@ -243,7 +242,7 @@
             <div id="task-section" class="modal-overlay hidden">
                 <div class="card modal-content">
 
-                    <div class="card no-padding" style="border: none; box-shadow: none;">
+                    <div class="card form-card no-padding" style="border: none; box-shadow: none;">
                         <h2 class="card__title">Registrar Nueva Tarea</h2>
 
                         <form id="formNewGlobalTask" class="form" novalidate>
@@ -265,7 +264,7 @@
                             </div>
 
                             <!-- Seleccion de usuarios para asignacion de tareas Tachobo-->
-                            <div class="form__group">
+                            <div class="form__group assing-user">
                                 <label class="form__label">Asignar a:</label>
 
                                 <div id="userSelectionContainer"
@@ -301,7 +300,8 @@
                             <div style="display: flex; gap: 10px; margin-top: 20px;">
                                 <button type="button" id="btnCancelGlobalTask" class="btn"
                                     style="flex: 1; background-color: var(--color-gray-200); color: var(--color-text-primary);">Cancelar</button>
-                                <button type="submit" class="btn btn--primary" style="flex: 1;">Asignar Tarea</button>
+                                <button type="submit" class="btn btn--primary" style="flex: 1;">Asignar
+                                    Tarea</button>
                             </div>
                         </form>
                     </div>
@@ -324,6 +324,8 @@
                     </div>
                 </div>
             </div>
+
+            <!-- CARD DE MODIFICACION DE USUARIO -->
             <div id="modalUserForm" class="modal-overlay hidden">
                 <div class="card card--login modal-content">
                     <h2 id="userModalTitle" class="card__title">Nuevo Usuario</h2>
@@ -363,7 +365,8 @@
                         <div style="display: flex; gap: 10px; margin-top: 20px;">
                             <button type="button" id="btnCancelUser" class="btn"
                                 style="flex: 1; background-color: var(--color-gray-200); color: var(--color-text-primary);">Cancelar</button>
-                            <button type="submit" class="btn btn--primary" style="flex: 1;">Guardar Usuario</button>
+                            <button type="submit" class="btn btn--primary btn--submit" style="flex: 1;">Guardar
+                                Usuario</button>
                         </div>
                     </form>
                 </div>

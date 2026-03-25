@@ -2,9 +2,9 @@ import { fetchTasks, deleteTaskApi, updateTaskApi, createTask } from "./api/task
 import { fetchUsers, deleteUserApi, updateUserApi, createUserApi } from "./api/usersApi.js";
 import { validateForm } from "./services/tasksService.js";
 import { showNotification } from "./ui/notificationsUI.js";
+import { repaintTask, uiEditTask } from "./ui/tasksUI.js";
 import { hideEmpty, showEmpty } from "./ui/uiState.js";
 import { formatFecha, getCurrentTimestamp } from "./utils/helpers.js";
-
 
 // ===============================================================
 // 1. SELECTORES DEL DOM
@@ -23,6 +23,7 @@ const userRolDisplay = document.getElementById("userRolDisplay");
 const body = document.querySelector("body");
 
 // form de tareas
+const formCard = document.querySelector(".form-card")
 const taskTitleArea = document.getElementById("taskTitleArea");
 const taskDescriptionArea = document.getElementById("taskDescriptionArea");
 const taskStatusArea = document.getElementById("taskStatusArea");
@@ -31,6 +32,8 @@ const taskDescriptionError = document.getElementById("taskDescriptionError")
 const taskStatusError = document.getElementById("taskStatusError")
 const userSelectionError = document.getElementById("userSelectionError");
 const modalContent = document.querySelector('.modal-content');
+const assignUserContainer = document.querySelector('.assing-user');
+const submitButton = document.querySelector(".btn--primary")
 
 let currentUser = null;
 
@@ -140,10 +143,11 @@ function renderAdminTasksTable(tasksToRender) {
         const statusText = task.estado === "completada" ? "Completada" : "Pendiente";
 
         const tr = document.createElement("tr");
+        tr.dataset.id = task.id;
         tr.innerHTML = `
             <td>${userName} <br><small style="color: var(--color-gray-500)">ID: ${task.userId}</small></td>
             <td><strong>${task.title}</strong></td> 
-            <td>${task.description || task.descripcion || ""}</td>
+            <td>${task.description}</td>
             <td>${task.createdAt}</td>
             <td>
                 <span style="background-color: ${statusColor}; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem;">
@@ -271,51 +275,34 @@ adminTasksTableBody.addEventListener("click", async (e) => {
     // -----------------------------------------
     const btnEdit = e.target.closest(".btn-edit-task");
     if (btnEdit) {
-        const taskId = btnEdit.getAttribute("data-id");
+        try {
+            const taskId = btnEdit.getAttribute("data-id");
 
-        // 1. Buscamos la tarea actual en nuestra lista para saber qué decía antes
-        const taskToEdit = allTasks.find(task => String(task.id) === String(taskId));
-        if (!taskToEdit) return;
+            // 1. Buscamos la tarea actual en nuestra lista para saber qué decía antes
+            const taskToEdit = allTasks.find(task => String(task.id) === String(taskId));
+            if (!taskToEdit) return;
 
-        //Se usa "||"" para capturar el texto sin importar si la propiedad se llama descripcion o description - Tachobo
+            // 2. Muestra el modal
+            taskSection.classList.remove("hidden");
+            body.classList.add("no-scroll");
 
-        const currentDesc = taskToEdit.description || taskToEdit.descripcion || "";
+            setTimeout(() => {
+                modalContent.scrollTop = 0;
+            }, 0);
 
-        // AQUI SOLITITAR TODO LO SUFICIENTE PARA EDITAR LA TAREA
-        // 2. Le pedimos al administrador el nuevo texto (mostrando el texto actual por defecto)
-        const newDescription = prompt("Edita la descripción de la tarea:", currentDesc);
+            // Preparar la card para editar
+            uiEditTask(formCard, taskToEdit);
 
-        // 3. Validamos que no sea nulo (cancelar) y que no esté vacío
-        if (newDescription !== null && newDescription.trim() !== "") {
-            try {
-                const updatedText = newDescription.trim();
-
-                // 4. Actualizamos en la API 
-                // Enviamos AMBAS llaves por seguridad si tu DB no es consistente
-                await updateTaskApi(taskId, {
-                    description: updatedText,
-                    descripcion: updatedText
-                });
-
-                // 5. Actualizamos nuestra lista local (allTasks)
-                taskToEdit.description = updatedText;
-                taskToEdit.descripcion = updatedText;
-
-                // 6. Notificar y redibujar
-                showNotification("Tarea actualizada con éxito", "success");
-                applyAdminFilters();
-
-            } catch (error) {
-                console.error("Error al editar:", error);
-                showNotification("Hubo un error al intentar actualizar la tarea.", "error"); s
-            }
+        } catch (error) {
+            console.error("Error al editar:", error);
+            showNotification("Hubo un error al intentar buscar la tarea.", "error");
         }
     }
-
 });
 
+
 // ===============================================================
-// 5. LÓGICA DEL MODAL: CREAR TAREA GLOBAL
+// 5. LÓGICA DEL MODAL: CREAR TAREA GLOBAL & EDICION DE TAREA
 // ===============================================================
 const btnNewGlobalTask = document.getElementById("btnNewGlobalTask");
 const modalNewGlobalTask = document.getElementById("modalNewGlobalTask");
@@ -328,13 +315,17 @@ const taskSection = document.getElementById("task-section")
 
 // 5.1. Abrir Modal y llenar la lista de usuarios
 btnNewGlobalTask.addEventListener("click", () => {
-    // 1. Carga los usuarios en los checkboxes
-    renderAssigneeCheckboxes();
-
-    // 2. Muestra el modal
     taskSection.classList.remove("hidden");
     body.classList.add("no-scroll");
 
+
+    showEmpty(assignUserContainer);
+
+    delete taskSection.dataset.id;
+
+    formNewGlobalTask.reset();
+
+    renderAssigneeCheckboxes();
     setTimeout(() => {
         modalContent.scrollTop = 0;
     }, 0);
@@ -352,11 +343,55 @@ btnCancelGlobalTask.addEventListener("click", () => {
     hideEmpty(taskTitleError);
     hideEmpty(taskDescriptionError);
     hideEmpty(taskStatusError);
+    hideEmpty(userSelectionError);
+
+    formCard.removeAttribute("data-id");
 });
 
-// 5.3. Guardar la nueva tarea (Múltiples usuarios)
+// 5.3. Guardar la nueva tarea (Múltiples usuarios) & Editar tarea
 formNewGlobalTask.addEventListener("submit", async (e) => {
     e.preventDefault();
+
+    // =================================
+    // CONFIRMACION DE EDICION DE TAREA
+    // =================================
+
+    // Se busca si el form contiene un data-id
+    const taskId = formCard.dataset.id;
+
+    // Si contiene un data-id procede a editar
+    if (taskId) {
+        showCustomConfirm("Editar tarea", "¿Estas seguro de que deseas editar esta tarea?", async () => {
+
+            const taskToEdit = allTasks.find(task => String(task.id) === String(taskId));
+
+            if (!validateForm(taskTitleArea, taskDescriptionArea, taskStatusArea, taskTitleError, taskDescriptionError, taskStatusError)) {
+                return;
+            }
+
+            let newTaskUpdate = {
+                title: taskTitleArea.value,
+                description: taskDescriptionArea.value,
+                status: taskStatusArea.value
+            };
+
+            // API
+            await updateTaskApi(taskId, newTaskUpdate);
+
+            // UI
+            repaintTask(taskToEdit, newTaskUpdate);
+
+            showNotification("Tarea actualizada con éxito", "success");
+            applyAdminFilters();
+
+            // cerrar modal
+            taskSection.classList.add("hidden");
+            body.classList.remove("no-scroll");
+            formCard.removeAttribute("data-id");
+            hideEmpty(userSelectionError);
+            return
+        });
+    }
 
     // Variable para validar que todos los campos no esten vacios
     var canMake = true;
@@ -451,15 +486,16 @@ function renderAdminUsersTable(usersToRender) {
             <td><strong>${documentId}</strong></td>
             <td>${user.name}</td>
             <td>${user.email}</td>
+            <td>0</td>
             <td>
                 <span style="background-color: ${roleColor}; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem;">
                     ${roleText}
                 </span>
             </td>
             <td>
-                <div style="display: flex; gap: 8px; align-items: center;">
+                <div style="display:flex; flex-direction:column; gap:6px; align-items:stretch;">
                     <button class="btn btn--primary btn-edit-user" data-id="${user.id}" style="padding: 5px 10px; font-size: 0.8rem; white-space: nowrap;">✏️ Editar</button>
-                    <button class="btn btn--danger btn-delete-user" data-id="${user.id}" style="padding: 5px 10px; font-size: 0.8rem; white-space: nowrap;">🗑️ Eliminar</button>
+                    <button class="btn btn--danger btn-delete-user" data-id="${user.id}" style="padding: 5px 10px; margin-top: 10px; font-size: 0.8rem; white-space: nowrap;">🗑️ Eliminar</button>
                 </div>
             </td>
         `;
@@ -553,7 +589,8 @@ adminUsersTableBody.addEventListener("click", (e) => {
                     // 3. Redibujar tabla
                     applyUserFilters();
 
-                    alert("Usuario eliminado con éxito");
+                    showNotification("¡Usuario eliminado con exito!", "success")
+                    body.classList.remove("no-scroll");
                 } catch (error) {
                     console.error("Error al eliminar usuario:", error);
                     alert("No se pudo eliminar al usuario. Intenta de nuevo.");
@@ -631,32 +668,39 @@ formUser.addEventListener("submit", async (e) => {
 
     try {
         if (isEditing) {
+            showCustomConfirm(
+                "Editar usuario",
+                `¿Seguro que quieres actualizar los datos de ${userData.name}?`,
+                async () => {
 
-            // --- LÓGICA DE EDICIÓN ---
-            if (confirm(`¿Seguro que quieres actualizar los datos de ${userData.name}?`)) {
-                await updateUserApi(userId, userData);
+                    await updateUserApi(userId, userData);
 
-                // Actualizar en el array local (allUsers)
-                const index = allUsers.findIndex(u => String(u.id) === String(userId));
-                if (index !== -1) {
-                    allUsers[index] = { ...allUsers[index], ...userData };
+                    // Actualizar en el array local (allUsers)
+                    const index = allUsers.findIndex(u => String(u.id) === String(userId));
+                    if (index !== -1) {
+                        allUsers[index] = { ...allUsers[index], ...userData };
+                    }
+
+                    showNotification("Usuario actualizado correctamente", "success");
+                    body.classList.remove("no-scroll");
+
+                    // Acciones comunes
+                    applyUserFilters();
+                    modalUserForm.classList.add("hidden");
+                    formUser.reset();
                 }
+            );
 
-                showNotification("Usuario actualizado correctamente", "success");
-                body.classList.remove("no-scroll")
-            } else {
-                body.classList.remove("no-scroll")
-                return; // Si cancela el confirm, no hace nada
-            }
-        } else {
-            // --- LÓGICA DE CREACIÓN ---
-            const newUser = await createUserApi(userData);
-            allUsers.push(newUser);
-            showNotification("Usuario creado correctamente", "success");
-            body.classList.remove("no-scroll")
+            return;
         }
 
-        // Acciones comunes después de Crear o Editar
+        // --- LÓGICA DE CREACIÓN ---
+        const newUser = await createUserApi(userData);
+        allUsers.push(newUser);
+        showNotification("Usuario creado correctamente", "success");
+        body.classList.remove("no-scroll");
+
+        // Acciones comunes
         applyUserFilters();
         modalUserForm.classList.add("hidden");
         formUser.reset();

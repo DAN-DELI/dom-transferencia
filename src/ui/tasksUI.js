@@ -4,7 +4,7 @@
 // ---------------------------------------------------------------
 
 import { getInitials, getCurrentTimestamp, formatFecha } from "../utils/helpers.js";
-import { showEmpty } from "./uiState.js";
+import { hideEmpty, showEmpty } from "./uiState.js";
 import { updateTaskApi, deleteTaskApi } from "../api/tasksApi.js";
 import { postDelete } from "../services/tasksService.js";
 
@@ -111,10 +111,10 @@ function makeEditable(card, task, currentUser) {
         const newDesc = content.querySelector('textarea').value;
         const newStatus = content.querySelector('select').value;
 
-// Si es usuario, ignoramos cambios en título/descripción
-        const dataToUpdate = isUser 
-        ? { status: newStatus } // Si es user, solo enviamos el estado
-        : { title: newTitle, description: newDesc, status: newStatus };
+        // Si es usuario, ignoramos cambios en título/descripción
+        const dataToUpdate = isUser
+            ? { status: newStatus } // Si es user, solo enviamos el estado
+            : { title: newTitle, description: newDesc, status: newStatus };
         const updated = await updateTaskApi(task.id, dataToUpdate);
         // const updated = await updateTaskApi(task.id, { title: newTitle, description: newDesc, status: newStatus });
 
@@ -193,4 +193,36 @@ export function updateMessageCounter(count) {
     if (counterElement) {
         counterElement.textContent = `${count} ${count === 1 ? 'mensaje' : 'mensajes'}`;
     }
+}
+
+// TABLA DE EDICION DE TAREAS
+export function uiEditTask(card, task) {
+    // Asignacion en el DOM
+    const titulo = card.querySelector(".card__title")
+    const taskTitle = card.querySelector('#taskTitleArea');
+    const taskDescription = card.querySelector('#taskDescriptionArea');
+    const assignUserContainer = card.querySelector('.assing-user');
+    const taskStatus = card.querySelector('#taskStatusArea');
+    const btnEdit = card.querySelector(".btn--primary")
+
+    hideEmpty(assignUserContainer);
+
+    // Guardar estado en el modal
+    card.dataset.id = task.id;
+
+    // Renderizamos la tarea
+    titulo.textContent = `Edicion de tarea`;
+    taskTitle.value = task.title;
+    taskDescription.value = task.description;
+    taskStatus.value = task.status;
+    btnEdit.textContent = "Editar tarea"
+
+    btnEdit.classList.add("confirmEdit")
+}
+
+
+export function repaintTask(oldTask, newTask) {
+    oldTask.title = newTask.title
+    oldTask.description = newTask.description
+    oldTask.status = newTask.status
 }
