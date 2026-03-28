@@ -91,7 +91,7 @@ export async function updateUserApi(id, userData) {
             name: userData.name,
             email: userData.email,
             document: userData.document,
-            rol: userData.rol
+            role: userData.role
         })
     });
     if (!res.ok) throw new Error("Error al actualizar el usuario");

@@ -508,13 +508,17 @@ function renderAdminUsersTable(usersToRender) {
  */
 function applyUserFilters() {
     if (!allUsers) allUsers = [];
-    const searchTerm = adminSearchUser.value.toLowerCase();
+
+    const searchTerm = (adminSearchUser.value || "").toLowerCase();
 
     const filteredUsers = allUsers.filter(user => {
-        const docId = String(user.document || user.id).toLowerCase();
-        return user.name.toLowerCase().includes(searchTerm) ||
+        const name = (user.name || "").toLowerCase();
+        const email = (user.email || "").toLowerCase();
+        const docId = String(user.document || user.id || "").toLowerCase();
+
+        return name.includes(searchTerm) ||
             docId.includes(searchTerm) ||
-            user.email.toLowerCase().includes(searchTerm);
+            email.includes(searchTerm);
     });
 
     renderAdminUsersTable(filteredUsers);
