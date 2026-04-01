@@ -68,6 +68,12 @@
     font-style: italic;
 }
 
+#btnNewUser,
+#btnNewGlobalTask {
+    height: 56px;
+    width: 268px;
+}
+
 /* ===========================================
    ESTILOS PARA MODALES (Ventanas Flotantes)
    =========================================== */
