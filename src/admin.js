@@ -101,16 +101,22 @@ tabUsers.addEventListener("click", () => {
 });
 
 btnAdminLogout.addEventListener("click", () => {
-    if (confirm("¿Estás seguro de que quieres salir del panel de administrador?")) {
-        localStorage.removeItem('usuarioActivo')
-        // Notificar (Se verá brevemente antes de cambiar de página)
-        showNotification("Sesión cerrada correctamente.", "info");
+    showCustomConfirm(
+        "Cerrar Sesión",
+        "¿Estás seguro de cerrar sesión?",
+        () => {
+            // Eliminar usuario activo
+            localStorage.removeItem('usuarioActivo');
 
-        // Redireccionar al login
-        setTimeout(() => {
-            window.location.href = 'index.html';
-        }, 500);
-    }
+            // Notificar
+            showNotification("Sesión cerrada correctamente.", "info");
+
+            // Redireccionar al login
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 500);
+        }
+    );
 });
 
 // ===============================================================
@@ -262,6 +268,8 @@ adminTasksTableBody.addEventListener("click", async (e) => {
 
                     body.classList.remove("no-scroll");
                     showNotification("Tarea borrada con éxito", "success");
+
+                    renderAdminUsersTable(allUsers);
                 } catch (error) {
                     console.error("Error al eliminar la tarea:", error);
                     alert("No se pudo eliminar al usuario. Intenta de nuevo.");
@@ -449,6 +457,9 @@ formNewGlobalTask.addEventListener("submit", async (e) => {
             showNotification("Tareas asignadas exitosamente", "success");
         }
 
+        // Actializar el contador de tareas asignadas a cada usuario
+        renderAdminUsersTable(allUsers);
+
     } catch (error) {
         console.error("Error al crear tareas múltiples:", error);
         showNotification("Hubo un error al asignar las tareas", "error");
@@ -465,7 +476,7 @@ const adminSearchUser = document.getElementById("adminSearchUser");
 /**
  * Dibuja la tabla de usuarios en pantalla
  */
-function renderAdminUsersTable(usersToRender) {
+async function renderAdminUsersTable(usersToRender) {
     adminUsersTableBody.innerHTML = "";
 
     if (!usersToRender || usersToRender.length === 0) {
@@ -473,20 +484,22 @@ function renderAdminUsersTable(usersToRender) {
         return;
     }
 
+    const allTasks = await fetchTasks()
+
     usersToRender.forEach(user => {
         // Definir un color según el rol (Azul para admin, Verde para usuario)
         const roleColor = user.role === "admin" ? "var(--color-primary)" : "var(--color-success)";
         const roleText = user.role === "admin" ? "Administrador" : "Usuario";
 
-        // Usamos user.document porque en tu db.json ese es el ID real de login
-        const documentId = user.document || user.id;
+        // Guardamos las tareas de este usuario
+        const userTasks = allTasks.filter(task => Number(task.userId) === Number(user.id));
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
-            <td><strong>${documentId}</strong></td>
+            <td><strong>${user.document}</strong></td>
             <td>${user.name}</td>
             <td>${user.email}</td>
-            <td>0</td>
+            <td>${userTasks.length}</td>
             <td>
                 <span style="background-color: ${roleColor}; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem;">
                     ${roleText}
@@ -742,43 +755,3 @@ async function renderAssigneeCheckboxes() {
         console.error("Error cargando usuarios:", error);
     }
 }
-
-// if (confirm(`¿Seguro que quieres actualizar los datos de ${userData.name}?`)) {
-//     async () => {
-//         try {
-//             await updateUserApi(editUserId.value, userData);
-//             const index = allUsers.findIndex(u => String(u.id) === String(editUserId.value));
-//             allUsers[index] = { ...allUsers[index], ...userData };
-//             applyUserFilters();
-//             modalUserForm.classList.add("hidden");
-
-//             if (confirmAction) {
-//                 await confirmAction();
-//             }
-
-//             showNotification("Usuario actualizado correctamente", "success")
-//         } catch (error) {
-//             alert("Error al actualizar");
-//         }
-//     }
-// } else {
-//     // LÓGICA DE CREACIÓN (Directa)
-//     try {
-//         const newUser = await createUserApi(userData);
-
-//         // 1. Agregar a nuestra lista local
-//         allUsers.push(newUser);
-
-//         // 2. Redibujar la tabla de usuarios
-//         applyUserFilters();
-
-//         // 3. Cerrar y limpiar
-//         modalUserForm.classList.add("hidden");
-//         formUser.reset();
-
-//         showNotification("Usuario creado correctamente", "success")
-//     } catch (error) {
-//         console.error("Error al crear:", error);
-//         alert("No se pudo crear el usuario. Revisa la consola.");
-//     }
-// }
