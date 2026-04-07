@@ -36,27 +36,24 @@ const assignUserContainer = document.querySelector('.assing-user');
 const submitButton = document.querySelector(".btn--primary")
 
 let currentUser = null;
-
+let allTasks = [];
+let allUsers = [];
 // ===============================================================
 // INICIALIZACION DEL DOCUMENTO
 // ===============================================================
 document.addEventListener("DOMContentLoaded", async () => {
     try {
-        currentUser = null;
-
-        loadAdminTasks();
-
-        // Obtener el texto del localStorage
         const sessionData = localStorage.getItem('usuarioActivo');
 
-        // Convertir el texto a Objeto
         if (sessionData) {
             currentUser = JSON.parse(sessionData);
         } else {
-            // Si no hay nada, se redirecciona al login
             window.location.href = 'index.html';
             return;
         }
+
+        // Carga inicial de datos
+        await loadAdminTasks();
 
         showNotification(`¡Hola de nuevo, ${currentUser.name}!`, "success");
 
@@ -116,9 +113,6 @@ btnAdminLogout.addEventListener("click", () => {
 // ===============================================================
 // 3. LÓGICA DE DATOS Y FILTROS (TAREAS)
 // ===============================================================
-let allTasks = [];
-let allUsers = [];
-
 // 3.1. Nuevos selectores para los filtros
 const adminSearchTask = document.getElementById("adminSearchTask");
 const adminFilterStatus = document.getElementById("adminFilterStatus");
@@ -136,22 +130,31 @@ function renderAdminTasksTable(tasksToRender) {
     }
 
     tasksToRender.forEach(task => {
-        const taskUser = allUsers.find(u => String(u.id) === String(task.userId));
+        const taskUser = allUsers.find(u => String(u.id) === String(task.user_id));
         const userName = taskUser ? taskUser.name : "Usuario Desconocido";
 
-        const statusColor = task.estado === "completada" ? "var(--color-success)" : "var(--color-warning)";
-        const statusText = task.estado === "completada" ? "Completada" : "Pendiente";
+        const currentStatus = task.status || task.estado || "pendiente";
+
+// Definimos el color según el estado real de la DB
+let statusColor;
+if (currentStatus === "completada") {
+    statusColor = "var(--color-success)"; // Verde
+} else if (currentStatus === "en progreso") {
+    statusColor = "var(--color-info, #3498db)"; // Azul 
+} else {
+    statusColor = "var(--color-warning)"; // Naranja/Amarillo para pendiente
+}
 
         const tr = document.createElement("tr");
         tr.dataset.id = task.id;
         tr.innerHTML = `
-            <td>${userName} <br><small style="color: var(--color-gray-500)">ID: ${task.userId}</small></td>
+            <td>${userName} <br><small style="color: var(--color-gray-500)">ID: ${task.user_id}</small></td>
             <td><strong>${task.title}</strong></td> 
             <td>${task.description}</td>
             <td>${task.createdAt}</td>
             <td>
                 <span style="background-color: ${statusColor}; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem;">
-                    ${task.status}
+                    ${currentStatus}
                 </span>
             </td>
             <td>
@@ -202,7 +205,7 @@ function applyAdminFilters() {
         const matchStatus = statusValue === "all" || currentStatus === statusValue;
 
         // 2. Buscar al usuario
-        const taskUser = allUsers.find(u => String(u.id) === String(task.userId));
+        const taskUser = allUsers.find(u => String(u.id) === String(task.user_id));
         const userName = taskUser ? (taskUser.name || "").toLowerCase() : "";
 
         // 3. Validar descripción (buscamos en ambas posibles llaves para evitar el undefined)
@@ -378,6 +381,12 @@ formNewGlobalTask.addEventListener("submit", async (e) => {
             // API
             await updateTaskApi(taskId, newTaskUpdate);
 
+            // Usamos Object.assign o el spread operator para no perder el userId original
+            const index = allTasks.findIndex(t => String(t.id) === String(taskId));
+            if (index !== -1) {
+                allTasks[index] = { ...allTasks[index], ...newTaskUpdate };
+            }
+
             // UI
             repaintTask(taskToEdit, newTaskUpdate);
 
@@ -391,6 +400,7 @@ formNewGlobalTask.addEventListener("submit", async (e) => {
             hideEmpty(userSelectionError);
             return
         });
+        return
     }
 
     // Variable para validar que todos los campos no esten vacios
@@ -427,27 +437,25 @@ formNewGlobalTask.addEventListener("submit", async (e) => {
 
     try {
         // 4. Crear una tarea para cada usuario seleccionado
-        const creationPromises = selectedIds.map(userId => {
-            return createTask({ ...baseTask, userId });
+        const creationPromises = selectedIds.map(user_id => {
+            return createTask({ ...baseTask, user_id });
         });
 
         // Esperamos a que todas se guarden en la API
-        const newTasksFromApi = await Promise.all(creationPromises);
+        const responsesFromApi = await Promise.all(creationPromises);
 
         // 5. Actualizar la lista local (opcional, para ver cambios sin recargar)
-        newTasksFromApi.forEach(t => allTasks.unshift(t));
-
+        responsesFromApi.forEach(res => {
+            const newTask = res.data; 
+            allTasks.unshift(newTask);
+});
         // 6. Limpiar, cerrar y notificar
         applyAdminFilters();
         taskSection.classList.add("hidden");
         body.classList.remove("no-scroll");
         formNewGlobalTask.reset();
 
-        if (selectedIds == 1) {
-            showNotification("Tarea asignada exitosamente", "success");
-        } else {
-            showNotification("Tareas asignadas exitosamente", "success");
-        }
+        showNotification(selectedIds.length === 1 ? "Tarea asignada" : "Tareas asignadas", "success");
 
     } catch (error) {
         console.error("Error al crear tareas múltiples:", error);
@@ -699,9 +707,12 @@ formUser.addEventListener("submit", async (e) => {
         }
 
         // --- LÓGICA DE CREACIÓN ---
-        const newUser = await createUserApi(userData);
+        const response = await createUserApi(userData);
+
+        const newUser = response.data; 
+
         allUsers.push(newUser);
-        showNotification("Usuario creado correctamente", "success");
+    showNotification("Usuario creado correctamente", "success");
         body.classList.remove("no-scroll");
 
         // Acciones comunes
@@ -718,8 +729,7 @@ formUser.addEventListener("submit", async (e) => {
 // Funcion de checkbox
 async function renderAssigneeCheckboxes() {
     try {
-        const response = await fetch('http://localhost:3000/users');
-        const users = await response.json();
+        const users = await fetchUsers();
         const listContainer = document.getElementById('individualUsersList');
 
         const clientUsers = users.filter(u => u.role !== 'admin');
@@ -727,7 +737,7 @@ async function renderAssigneeCheckboxes() {
         listContainer.innerHTML = clientUsers.map(user => `
             <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px; cursor: pointer;">
                 <input type="checkbox" class="user-assign-check" value="${user.id}">
-                <span>${user.name} <small style="color: #777;">(${user.document})</small></span>
+                <span>${user.name} <small style="color: #777;">(${user.document || user.id})</small></span>
             </label>
         `).join('');
 
