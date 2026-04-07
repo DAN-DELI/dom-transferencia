@@ -139,11 +139,12 @@ function renderAdminTasksTable(tasksToRender) {
 let statusColor;
 if (currentStatus === "completada") {
     statusColor = "var(--color-success)"; // Verde
-} else if (currentStatus === "en progreso") {
+} else if (currentStatus === "en-progreso") {
     statusColor = "var(--color-info, #3498db)"; // Azul 
 } else {
     statusColor = "var(--color-warning)"; // Naranja/Amarillo para pendiente
 }
+    const fechaFormateada = task.created_at ? formatFecha(task.created_at) : "Sin fecha";
 
         const tr = document.createElement("tr");
         tr.dataset.id = task.id;
@@ -151,7 +152,7 @@ if (currentStatus === "completada") {
             <td>${userName} <br><small style="color: var(--color-gray-500)">ID: ${task.user_id}</small></td>
             <td><strong>${task.title}</strong></td> 
             <td>${task.description}</td>
-            <td>${task.createdAt}</td>
+            <td>${fechaFormateada}</td>
             <td>
                 <span style="background-color: ${statusColor}; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem;">
                     ${currentStatus}
@@ -246,12 +247,12 @@ adminTasksTableBody.addEventListener("click", async (e) => {
         const actuallyTask = allTasks.find(j => String(j.id) === String(taskId))
 
         // Buscamos el nombre para que el mensaje sea personalizado
-        const actuallyUser = allUsers.find(u => String(u.id) === String(actuallyTask.userId));
-        if (!actuallyUser) return;
+        const actuallyUser = allUsers.find(u => String(u.id) === String(actuallyTask.user_id));
+        const userName = actuallyUser ? actuallyUser.name : "este usuario";
 
         showCustomConfirm(
             "Eliminar Tarea",
-            `¿Estás seguro de que deseas eliminar la tarea de ${actuallyUser.name}? Esta acción borrará todos sus datos del sistema.`,
+            `¿Estás seguro de que deseas eliminar la tarea de ${userName}? Esta acción borrará todos sus datos del sistema.`,
             async () => {
                 try {
                     // 1. Llamada a la API
@@ -432,7 +433,7 @@ formNewGlobalTask.addEventListener("submit", async (e) => {
         description: taskDescriptionArea.value.trim(),
         status: taskStatusArea.value,
         createdAt: getCurrentTimestamp(),
-        createdBy: "admin"
+        created_by: "admin"
     };
 
     try {
@@ -446,11 +447,15 @@ formNewGlobalTask.addEventListener("submit", async (e) => {
 
         // 5. Actualizar la lista local (opcional, para ver cambios sin recargar)
         responsesFromApi.forEach(res => {
-            const newTask = res.data; 
-            allTasks.unshift(newTask);
-});
+            if (res.data) {
+                allTasks.unshift(res.data);
+            }
+        });
+
         // 6. Limpiar, cerrar y notificar
         applyAdminFilters();
+
+        renderAdminUsersTable(allUsers);
         taskSection.classList.add("hidden");
         body.classList.remove("no-scroll");
         formNewGlobalTask.reset();
@@ -489,12 +494,14 @@ function renderAdminUsersTable(usersToRender) {
         // Usamos user.document porque en tu db.json ese es el ID real de login
         const documentId = user.document || user.id;
 
+        const taskCount = allTasks.filter(t => String(t.user_id) === String(user.id)).length;
+
         const tr = document.createElement("tr");
         tr.innerHTML = `
             <td><strong>${documentId}</strong></td>
             <td>${user.name}</td>
             <td>${user.email}</td>
-            <td>0</td>
+            <td>${taskCount}</td>
             <td>
                 <span style="background-color: ${roleColor}; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem;">
                     ${roleText}

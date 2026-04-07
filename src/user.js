@@ -123,7 +123,7 @@ taskForm.addEventListener("submit", async e => {
         title: taskTitleArea.value.trim(),
         description: taskDescriptionArea.value.trim(),
         status: taskStatusArea.value,
-        created_at: getCurrentTimestamp()
+        created_by: "user"
     };
 
     //persiste la tarea en el backend

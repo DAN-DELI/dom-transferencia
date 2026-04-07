@@ -61,7 +61,7 @@ export async function updateTaskApi(id, updatedData) {
     if (!response.success) {
         throw new Error(response.message || "No se pudo actualizar la tarea");
     }
-    return response; 
+    return response.data; 
 }
 
 /**
