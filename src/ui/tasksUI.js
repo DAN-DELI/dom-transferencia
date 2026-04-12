@@ -199,6 +199,13 @@ export function updateMessageCounter(count) {
 
 // TABLA DE EDICION DE TAREAS
 export function uiEditTask(card, task) {
+    // Aplicamos uso del DOM
+    const body = document.querySelectorAll("body")
+    const taskSection = document.getElementById("task-section")
+
+    showEmpty(taskSection)
+    body.classList.add("no-scroll");
+
     // Asignacion en el DOM
     const titulo = card.querySelector(".card__title")
     const taskTitle = card.querySelector('#taskTitleArea');

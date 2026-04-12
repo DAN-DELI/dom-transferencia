@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------
 // ---------------------------------------------------------------
 // API DE TAREAS
-// Funciones encapsuladas para comunicarse con el backend (json-server)
+// Funciones encapsuladas para comunicarse con el backend
 // ---------------------------------------------------------------
 
 /**
@@ -31,7 +31,7 @@ export async function createTask(task) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(task)
     });
-    
+
     const response = await res.json();
 
     if (!response.success) {
@@ -39,7 +39,7 @@ export async function createTask(task) {
         throw new Error(errorMsg || "Error al registrar tarea");
     }
 
-    return response; 
+    return response;
 }
 
 /**
@@ -55,13 +55,13 @@ export async function updateTaskApi(id, updatedData) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updatedData)
     });
-    
+
     const response = await res.json();
 
     if (!response.success) {
         throw new Error(response.message || "No se pudo actualizar la tarea");
     }
-    return response.data; 
+    return response.data;
 }
 
 /**
@@ -74,12 +74,12 @@ export async function deleteTaskApi(id) {
     const res = await fetch(`http://localhost:3000/tasks/${id}`, {
         method: "DELETE"
     });
-    
+
     const response = await res.json();
 
     if (!response.success) {
         throw new Error(response.message || "No se pudo eliminar la tarea");
     }
-    
+
     return response;
 }

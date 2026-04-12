@@ -1,6 +1,8 @@
 import { fetchTasks, deleteTaskApi, updateTaskApi, createTask } from "./api/tasksApi.js";
 import { fetchUsers, deleteUserApi, updateUserApi, createUserApi } from "./api/usersApi.js";
+import { applyAdminFilters, initialRender, renderAdminTasksTable, renderAllUsers, renderModalEdit, taskToEdit } from "./services/adminService.js";
 import { validateForm } from "./services/tasksService.js";
+import { adminRenderTasks, renderAdminUsersTable } from "./ui/adminUI.js";
 import { showNotification } from "./ui/notificationsUI.js";
 import { repaintTask, uiEditTask } from "./ui/tasksUI.js";
 import { hideEmpty, showEmpty } from "./ui/uiState.js";
@@ -53,7 +55,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         // Carga inicial de datos
-        await loadAdminTasks();
+        initialRender(adminUsersTableBody, adminTasksTableBody);
 
         showNotification(`¡Hola de nuevo, ${currentUser.name}!`, "success");
 
@@ -123,116 +125,32 @@ btnAdminLogout.addEventListener("click", () => {
 const adminSearchTask = document.getElementById("adminSearchTask");
 const adminFilterStatus = document.getElementById("adminFilterStatus");
 
-/**
- * Función exclusiva para DIBUJAR la tabla basándose en una lista de tareas
- * @param {Array} tasksToRender - Lista de tareas que queremos mostrar
- */
-function renderAdminTasksTable(tasksToRender) {
-    adminTasksTableBody.innerHTML = "";
 
-    if (tasksToRender.length === 0) {
-        adminTasksTableBody.innerHTML = `<tr><td colspan="6" class="table-empty">No se encontraron tareas con estos filtros.</td></tr>`;
-        return;
-    }
 
-    tasksToRender.forEach(task => {
-        const taskUser = allUsers.find(u => String(u.id) === String(task.user_id));
-        const userName = taskUser ? taskUser.name : "Usuario Desconocido";
+// /**
+//  * Función principal que carga los datos desde la API
+//  */
+// async function loadAdminTasks() {
+//     try {
+//         adminTasksTableBody.innerHTML = `<tr><td colspan="6" class="table-empty">Cargando datos del sistema...</td></tr>`;
 
-        const currentStatus = task.status || task.estado || "pendiente";
+//         // Traer datos de la base de datos
+//         allTasks = await fetchTasks();
+//         allUsers = await fetchUsers();
 
-// Definimos el color según el estado real de la DB
-let statusColor;
-if (currentStatus === "completada") {
-    statusColor = "var(--color-success)"; // Verde
-} else if (currentStatus === "en-progreso") {
-    statusColor = "var(--color-info, #3498db)"; // Azul 
-} else {
-    statusColor = "var(--color-warning)"; // Naranja/Amarillo para pendiente
-}
-    const fechaFormateada = task.created_at ? formatFecha(task.created_at) : "Sin fecha";
+//         // Dibujar ambas tablas
+//         renderAdminTasksTable(adminTasksTableBody);
+//         renderAdminUsersTable(allUsers);
 
-        const tr = document.createElement("tr");
-        tr.dataset.id = task.id;
-        tr.innerHTML = `
-            <td>${userName} <br><small style="color: var(--color-gray-500)">ID: ${task.user_id}</small></td>
-            <td><strong>${task.title}</strong></td> 
-            <td>${task.description}</td>
-            <td>${fechaFormateada}</td>
-            <td>
-                <span style="background-color: ${statusColor}; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem;">
-                    ${currentStatus}
-                </span>
-            </td>
-            <td>
-                <div style="display:flex; flex-direction:column; gap:6px; align-items:stretch;">
-
-                    <button class="btn btn--primary btn-edit-task" data-id="${task.id}" style="padding:5px 10px; font-size:0.8rem; white-space:nowrap;">✏️ Editar</button>
-                    <button class="btn btn--danger btn-delete-task" data-id="${task.id}" style="padding:5px 10px; margin-top: 10px;  font-size:0.8rem; white-space:nowrap;">🗑️ Eliminar</button>
-
-                </div>
-            </td>
-        `;
-        adminTasksTableBody.appendChild(tr);
-    });
-}
-
-/**
- * Función principal que carga los datos desde la API
- */
-async function loadAdminTasks() {
-    try {
-        adminTasksTableBody.innerHTML = `<tr><td colspan="6" class="table-empty">Cargando datos del sistema...</td></tr>`;
-
-        // Traer datos de la base de datos
-        allTasks = await fetchTasks();
-        allUsers = await fetchUsers();
-
-        // Dibujar ambas tablas
-        renderAdminTasksTable(allTasks);
-        renderAdminUsersTable(allUsers);
-
-    } catch (error) {
-        console.error("Error cargando datos del admin:", error);
-        adminTasksTableBody.innerHTML = `<tr><td colspan="6" class="table-empty" style="color: red;">Error al cargar la base de datos. Verifica que json-server esté corriendo.</td></tr>`;
-    }
-}
-
-/**
- * 3.2. Función que evalúa los filtros y actualiza la tabla
- */
-function applyAdminFilters() {
-    // Aseguramos que el buscador tenga un valor, si no, cadena vacía
-    const searchTerm = (adminSearchTask.value || "").toLowerCase();
-    const statusValue = adminFilterStatus.value;
-
-    const filteredTasks = allTasks.filter(task => {
-        // 1. Validar estado (comprobamos 'estado' o 'status' por si acaso)
-        const currentStatus = task.estado || task.status || "";
-        const matchStatus = statusValue === "all" || currentStatus === statusValue;
-
-        // 2. Buscar al usuario
-        const taskUser = allUsers.find(u => String(u.id) === String(task.user_id));
-        const userName = taskUser ? (taskUser.name || "").toLowerCase() : "";
-
-        // 3. Validar descripción (buscamos en ambas posibles llaves para evitar el undefined)
-        const desc = (task.descripcion || task.description || "").toLowerCase();
-        const title = (task.title || "").toLowerCase();
-
-        const matchSearch = desc.includes(searchTerm) ||
-            title.includes(searchTerm) ||
-            userName.includes(searchTerm) ||
-            String(task.id).includes(searchTerm);
-
-        return matchStatus && matchSearch;
-    });
-
-    renderAdminTasksTable(filteredTasks);
-}
+//     } catch (error) {
+//         console.error("Error cargando datos del admin:", error);
+//         adminTasksTableBody.innerHTML = `<tr><td colspan="6" class="table-empty" style="color: red;">Error al cargar la base de datos. Verifica que json-server esté corriendo.</td></tr>`;
+//     }
+// }
 
 // 3.3. Escuchar los eventos de la barra de herramientas
-adminSearchTask.addEventListener("input", applyAdminFilters); // Se activa al escribir cada letra
-adminFilterStatus.addEventListener("change", applyAdminFilters); // Se activa al cambiar el select
+adminSearchTask.addEventListener("input", async () => applyAdminFilters(adminSearchTask, adminFilterStatus, adminTasksTableBody)); // Se activa al escribir cada letra
+adminFilterStatus.addEventListener("change", async () => applyAdminFilters(adminSearchTask, adminFilterStatus, adminTasksTableBody)); // Se activa al cambiar el select
 
 // ===============================================================
 // 4. LÓGICA DE ACCIONES EN LA TABLA (ELIMINAR Y EDITAR)
@@ -268,12 +186,13 @@ adminTasksTableBody.addEventListener("click", async (e) => {
                     allTasks = allTasks.filter(m => String(m.id) !== String(actuallyTask.id));
 
                     // 3. Redibujar tabla
-                    applyAdminFilters();
+                    await applyAdminFilters(adminSearchTask, adminFilterStatus, adminTasksTableBody);
 
                     body.classList.remove("no-scroll");
                     showNotification("Tarea borrada con éxito", "success");
 
-                    renderAdminUsersTable(allUsers);
+                    renderAdminUsersTable(allUsers, allTasks, adminTasksTableBody);
+
                 } catch (error) {
                     console.error("Error al eliminar la tarea:", error);
                     alert("No se pudo eliminar al usuario. Intenta de nuevo.");
@@ -283,38 +202,48 @@ adminTasksTableBody.addEventListener("click", async (e) => {
     };
 
     // -----------------------------------------
-    // ACCIÓN: EDITAR TAREA
+    // ACCIÓN: ABRIR MODAL DE EDICION DE TAREA
     // -----------------------------------------
     const btnEdit = e.target.closest(".btn-edit-task");
     if (btnEdit) {
         try {
             const taskId = btnEdit.getAttribute("data-id");
+            
 
+            //
+            // EN PROCESO
+            // 
+            await renderModalEdit(taskId, formCard, taskToEdit)
+
+
+
+
+            // const allTasksy = await fetchTasks();
             // 1. Buscamos la tarea actual en nuestra lista para saber qué decía antes
-            const taskToEdit = allTasks.find(task => String(task.id) === String(taskId));
-            if (!taskToEdit) return;
-
+            // const taskToEdit = allTasksy.find(task => String(task.id) === String(taskId));
+            // console.log(taskToEdit)
+            
             // 2. Muestra el modal
             taskSection.classList.remove("hidden");
-            body.classList.add("no-scroll");
+            // body.classList.add("no-scroll");
 
             setTimeout(() => {
                 modalContent.scrollTop = 0;
             }, 0);
 
             // Preparar la card para editar
-            uiEditTask(formCard, taskToEdit);
+            // uiEditTask(formCard, taskToEdit);
 
         } catch (error) {
-            console.error("Error al editar:", error);
-            showNotification("Hubo un error al intentar buscar la tarea.", "error");
+            console.error("Error al editar:", error.message);
+            showNotification(`ERROR: ${error.message}`, "error");
         }
     }
 });
 
 
 // ===============================================================
-// 5. LÓGICA DEL MODAL: CREAR TAREA GLOBAL & EDICION DE TAREA
+// 5. LÓGICA DEL MODAL: CREAR TAREA GLOBAL || EDICION DE TAREA
 // ===============================================================
 const btnNewGlobalTask = document.getElementById("btnNewGlobalTask");
 const modalNewGlobalTask = document.getElementById("modalNewGlobalTask");
@@ -329,7 +258,6 @@ const taskSection = document.getElementById("task-section")
 btnNewGlobalTask.addEventListener("click", () => {
     taskSection.classList.remove("hidden");
     body.classList.add("no-scroll");
-
 
     showEmpty(assignUserContainer);
 
@@ -364,6 +292,7 @@ btnCancelGlobalTask.addEventListener("click", () => {
 formNewGlobalTask.addEventListener("submit", async (e) => {
     e.preventDefault();
 
+    
     // =================================
     // CONFIRMACION DE EDICION DE TAREA
     // =================================
@@ -375,6 +304,17 @@ formNewGlobalTask.addEventListener("submit", async (e) => {
     if (taskId) {
         showCustomConfirm("Editar tarea", "¿Estas seguro de que deseas editar esta tarea?", async () => {
 
+            // if (!validateForm(taskTitleArea, taskDescriptionArea, taskStatusArea, taskTitleError, taskDescriptionError, taskStatusError)) {
+            //     return;
+            // }
+
+            // let newTaskUpdate = {
+            //     title: taskTitleArea.value,
+            //     description: taskDescriptionArea.value,
+            //     status: taskStatusArea.value
+            // };
+
+            taskToEdit(taskId, newTaskUpdate)
             const taskToEdit = allTasks.find(task => String(task.id) === String(taskId));
 
             if (!validateForm(taskTitleArea, taskDescriptionArea, taskStatusArea, taskTitleError, taskDescriptionError, taskStatusError)) {
@@ -400,7 +340,7 @@ formNewGlobalTask.addEventListener("submit", async (e) => {
             repaintTask(taskToEdit, newTaskUpdate);
 
             showNotification("Tarea actualizada con éxito", "success");
-            applyAdminFilters();
+            applyAdminFilters(adminSearchTask, adminFilterStatus, adminTasksTableBody);
 
             // cerrar modal
             taskSection.classList.add("hidden");
@@ -437,18 +377,18 @@ formNewGlobalTask.addEventListener("submit", async (e) => {
 
     // Datos base de la tarea
     const baseTask = {
-        title: taskTitleArea.value.trim(),
-        description: taskDescriptionArea.value.trim(),
-        status: taskStatusArea.value,
-        createdAt: getCurrentTimestamp(),
-        created_by: "admin"
+        "title": taskTitleArea.value.trim(),
+        "description": taskDescriptionArea.value.trim(),
+        "status": taskStatusArea.value,
+        "createdAt": getCurrentTimestamp(),
+        "created_by": "admin"
     };
 
     try {
         // 4. Crear una tarea para cada usuario seleccionado
         const creationPromises = selectedIds.map(user_id => {
-            return createTask({ ...baseTask, user_id });
-        });
+            return createTask({ ...baseTask, user_id: Number(user_id) });
+        })
 
         // Esperamos a que todas se guarden en la API
         const responsesFromApi = await Promise.all(creationPromises);
@@ -461,9 +401,8 @@ formNewGlobalTask.addEventListener("submit", async (e) => {
         });
 
         // 6. Limpiar, cerrar y notificar
-        applyAdminFilters();
+        applyAdminFilters(adminSearchTask, adminFilterStatus, adminTasksTableBody);
 
-        renderAdminUsersTable(allUsers);
         taskSection.classList.add("hidden");
         body.classList.remove("no-scroll");
         formNewGlobalTask.reset();
@@ -471,7 +410,8 @@ formNewGlobalTask.addEventListener("submit", async (e) => {
         showNotification(selectedIds.length === 1 ? "Tarea asignada" : "Tareas asignadas", "success");
 
         // Actializar el contador de tareas asignadas a cada usuario
-        renderAdminUsersTable(allUsers);
+        // renderAdminUsersTable(adminTasksTableBody);
+        renderAllUsers(adminUsersTableBody)
 
     } catch (error) {
         console.error("Error al crear tareas múltiples:", error);
@@ -486,50 +426,50 @@ formNewGlobalTask.addEventListener("submit", async (e) => {
 const adminUsersTableBody = document.getElementById("adminUsersTableBody");
 const adminSearchUser = document.getElementById("adminSearchUser");
 
-/**
- * Dibuja la tabla de usuarios en pantalla
- */
-async function renderAdminUsersTable(usersToRender) {
-    adminUsersTableBody.innerHTML = "";
+// /**
+//  * Dibuja la tabla de usuarios en pantalla
+//  */
+// async function renderAdminUsersTable(usersToRender) {
+//     adminUsersTableBody.innerHTML = "";
 
-    if (!usersToRender || usersToRender.length === 0) {
-        adminUsersTableBody.innerHTML = `<tr><td colspan="5" class="table-empty">No se encontraron usuarios.</td></tr>`;
-        return;
-    }
+//     if (!usersToRender || usersToRender.length === 0) {
+//         adminUsersTableBody.innerHTML = `<tr><td colspan="5" class="table-empty">No se encontraron usuarios.</td></tr>`;
+//         return;
+//     }
 
-    const allTasks = await fetchTasks()
+//     const allTasks = await fetchTasks()
 
-    usersToRender.forEach(user => {
-        // Definir un color según el rol (Azul para admin, Verde para usuario)
-        const roleColor = user.role === "admin" ? "var(--color-primary)" : "var(--color-success)";
-        const roleText = user.role === "admin" ? "Administrador" : "Usuario";
+//     usersToRender.forEach(user => {
+//         // Definir un color según el rol (Azul para admin, Verde para usuario)
+//         const roleColor = user.role === "admin" ? "var(--color-primary)" : "var(--color-success)";
+//         const roleText = user.role === "admin" ? "Administrador" : "Usuario";
 
-        // Guardamos las tareas de este usuario
-        const userTasks = allTasks.filter(task => Number(task.userId) === Number(user.id));
+//         // Guardamos las tareas de este usuario
+//         const userTasks = allTasks.filter(task => Number(task.userId) === Number(user.id));
 
-        const taskCount = allTasks.filter(t => String(t.user_id) === String(user.id)).length;
+//         const taskCount = allTasks.filter(t => String(t.user_id) === String(user.id)).length;
 
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-            <td><strong>${user.document}</strong></td>
-            <td>${user.name}</td>
-            <td>${user.email}</td>
-            <td>${taskCount}</td>
-            <td>
-                <span style="background-color: ${roleColor}; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem;">
-                    ${roleText}
-                </span>
-            </td>
-            <td>
-                <div style="display:flex; flex-direction:column; gap:6px; align-items:stretch;">
-                    <button class="btn btn--primary btn-edit-user" data-id="${user.id}" style="padding: 5px 10px; font-size: 0.8rem; white-space: nowrap;">✏️ Editar</button>
-                    <button class="btn btn--danger btn-delete-user" data-id="${user.id}" style="padding: 5px 10px; margin-top: 10px; font-size: 0.8rem; white-space: nowrap;">🗑️ Eliminar</button>
-                </div>
-            </td>
-        `;
-        adminUsersTableBody.appendChild(tr);
-    });
-}
+//         const tr = document.createElement("tr");
+//         tr.innerHTML = `
+//             <td><strong>${user.document}</strong></td>
+//             <td>${user.name}</td>
+//             <td>${user.email}</td>
+//             <td>${taskCount}</td>
+//             <td>
+//                 <span style="background-color: ${roleColor}; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem;">
+//                     ${roleText}
+//                 </span>
+//             </td>
+//             <td>
+//                 <div style="display:flex; flex-direction:column; gap:6px; align-items:stretch;">
+//                     <button class="btn btn--primary btn-edit-user" data-id="${user.id}" style="padding: 5px 10px; font-size: 0.8rem; white-space: nowrap;">✏️ Editar</button>
+//                     <button class="btn btn--danger btn-delete-user" data-id="${user.id}" style="padding: 5px 10px; margin-top: 10px; font-size: 0.8rem; white-space: nowrap;">🗑️ Eliminar</button>
+//                 </div>
+//             </td>
+//         `;
+//         adminUsersTableBody.appendChild(tr);
+//     });
+// }
 
 /**
  * Filtra la tabla de usuarios en tiempo real
@@ -684,14 +624,14 @@ btnCancelUser.addEventListener("click", () => {
     body.classList.remove("no-scroll");
 });
 
-// 8.3. GUARDAR (Crear o Actualizar)
+// 8.3. GUARDAR (Crear o Actualizar Usuario)
 formUser.addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const userData = {
         name: userNameInput.value.trim(),
         email: userEmailInput.value.trim(),
-        document: Number(userDocInput.value.trim()),
+        document: userDocInput.value.trim(),
         role: userRoleInput.value
     };
 
@@ -729,10 +669,10 @@ formUser.addEventListener("submit", async (e) => {
         // --- LÓGICA DE CREACIÓN ---
         const response = await createUserApi(userData);
 
-        const newUser = response.data; 
+        const newUser = response.data;
 
         allUsers.push(newUser);
-    showNotification("Usuario creado correctamente", "success");
+        showNotification("Usuario creado correctamente", "success");
         body.classList.remove("no-scroll");
 
         // Acciones comunes

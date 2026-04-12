@@ -88,3 +88,16 @@ export function formatFecha(isoString) {
         hour12: true
     });
 }
+
+
+// utils/apiHandler.js
+export const handleResponse = async (res) => {
+    const response = await res.json();
+
+    if (!res.ok || !response.success) {
+        const msg = response?.errors?.join(", ") || response.message || "Error";
+        throw new Error(msg);
+    }
+
+    return response.data;
+};

@@ -14,7 +14,7 @@ import { getSelectedValues, isValidInput, processTasks } from "../utils/helpers.
  */
 export async function getTasksByUser(userId) {
     const tasks = await fetchTasks();
-    
+
     return tasks.filter(t => Number(t.user_id) === Number(userId));
 }
 /**
